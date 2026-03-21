@@ -1,8 +1,102 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "CodeNote Workspace";
+    Layout = null; // Вимикаємо стандартний Layout для повноекранного IDE
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <div class="ide-container">
+        
+        <div class="ide-panel left-panel" id="explorer-panel">
+            <div class="panel-toolbar">
+                <span class="toolbar-title">ПРОЕКТ</span>
+                <div class="toolbar-actions">
+                    <button id="btn-new-file" disabled title="Створити файл"><i class="bi bi-file-earmark-plus"></i></button>
+                    <button id="btn-new-folder" title="Створити папку"><i class="bi bi-folder-plus"></i></button>
+                    <button id="btn-delete-item" disabled title="Видалити"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+            <div class="explorer-tree" id="explorer-tree">
+                <div class="tree-item folder-item" data-type="folder" data-id="1">
+                    <i class="bi bi-folder"></i> <span>src</span>
+                </div>
+                <div class="tree-item file-item" data-type="file" data-id="1" data-parent="1">
+                    <i class="bi bi-file-code"></i> <span>Program.cs</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="resizer vertical-resizer" id="resizer-left"></div>
+
+        <div class="ide-main">
+            <div class="editor-toolbar">
+                <div class="current-file-name" id="current-file-name">Program.cs</div>
+                <div class="editor-actions">
+                    <button id="btn-save-version" class="btn-ide"><i class="bi bi-save"></i> Зберегти в поточну</button>
+                    <button id="btn-new-version" class="btn-ide"><i class="bi bi-node-plus"></i> Створити нову версію</button>
+                    <button id="btn-toggle-right-panel" class="btn-ide icon-only" title="Історія версій"><i class="bi bi-clock-history"></i></button>
+                </div>
+            </div>
+
+            <div class="editor-container" id="monaco-editor-container"></div>
+
+            <div class="resizer horizontal-resizer" id="resizer-bottom"></div>
+
+            <div class="bottom-panel" id="meta-panel">
+                <div class="panel-header" id="meta-panel-header">
+                    <span><i class="bi bi-info-circle"></i> Опис файлу та Теги</span>
+                    <button id="btn-toggle-bottom" class="icon-only"><i class="bi bi-chevron-down"></i></button>
+                </div>
+                <div class="panel-content" id="meta-panel-content">
+                    <textarea id="file-description" placeholder="Додайте опис до цього файлу..."></textarea>
+                    <div class="tags-input-container">
+                        <i class="bi bi-tags"></i>
+                        <input type="text" id="file-tags" placeholder="C#, ASP.NET, Backend..." />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="resizer vertical-resizer" id="resizer-right" style="display: none;"></div>
+
+        <div class="ide-panel right-panel" id="versions-panel" style="display: none;">
+            <div class="panel-toolbar">
+                <span class="toolbar-title">ІСТОРІЯ ВЕРСІЙ</span>
+                <button id="btn-close-right-panel" class="icon-only"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="versions-list" id="versions-list">
+                <div class="version-item active">
+                    <div class="version-info">
+                        <strong>v2 (Поточна)</strong>
+                        <small>21 Бер 2026, 20:15</small>
+                    </div>
+                    <div class="version-actions">
+                        <button class="icon-only text-danger"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+                <div class="version-item">
+                    <div class="version-info">
+                        <strong>v1 (Початкова)</strong>
+                        <small>21 Бер 2026, 18:00</small>
+                    </div>
+                    <div class="version-actions">
+                        <button class="icon-only text-danger"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script src="~/js/ide.js"></script>
+</body>
+</html>

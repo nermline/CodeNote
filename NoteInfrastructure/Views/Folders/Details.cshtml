@@ -29,6 +29,42 @@
             @Html.DisplayFor(model => model.Parentfolder.Name)
         </dd>
     </dl>
+    <h4>Вміст каталогу</h4>
+    <hr />
+    
+    <h5>Підкаталоги</h5>
+    @if (Model.InverseParentfolder != null && Model.InverseParentfolder.Any())
+    {
+        <ul>
+            @foreach (var subfolder in Model.InverseParentfolder)
+            {
+                <li>
+                    <a asp-action="Details" asp-route-id="@subfolder.Id">@subfolder.Name</a>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>Немає підкаталогів.</p>
+    }
+
+    <h5>Файли</h5>
+    @if (Model.Files != null && Model.Files.Any())
+    {
+        <ul>
+            @foreach (var file in Model.Files)
+            {
+                <li>
+                    <a asp-controller="Files" asp-action="Details" asp-route-id="@file.Id">@file.Name</a>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>Немає файлів у цьому каталозі.</p>
+    }
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |

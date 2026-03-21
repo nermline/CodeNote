@@ -51,6 +51,34 @@
             }
         </dd>
     </dl>
+    <h4>Версії файлу</h4>
+    <hr />
+    @if (Model.Fileversions != null && Model.Fileversions.Any())
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Версія / Назва</th>
+                    <th>Дія</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var version in Model.Fileversions)
+                {
+                    <tr>
+                        <td>@version.Id</td>
+                        <td>
+                            <a asp-controller="Fileversions" asp-action="Details" asp-route-id="@version.Id">Деталі версії</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Для цього файлу ще немає створених версій.</p>
+    }
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |

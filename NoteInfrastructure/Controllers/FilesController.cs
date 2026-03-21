@@ -42,6 +42,7 @@ namespace NoteInfrastructure.Controllers
             var @file = await _context.Files
                 .Include(f => f.Folder)
                 .Include(f => f.Tags)
+                .Include(f => f.Fileversions)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (@file == null)
             {

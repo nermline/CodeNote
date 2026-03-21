@@ -17,6 +17,36 @@
             @Html.DisplayFor(model => model.Name)
         </dd>
     </dl>
+    <h4>Файли з цим тегом</h4>
+    <hr />
+    @if (Model.Files != null && Model.Files.Any())
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Ім'я файлу</th>
+                    <th>Опис</th>
+                    <th>Дія</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var file in Model.Files)
+                {
+                    <tr>
+                        <td>@file.Name</td>
+                        <td>@file.Description</td>
+                        <td>
+                            <a asp-controller="Files" asp-action="Details" asp-route-id="@file.Id">Перейти до файлу</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Немає файлів з таким тегом.</p>
+    }
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |

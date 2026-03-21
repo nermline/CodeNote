@@ -36,6 +36,8 @@ namespace NoteInfrastructure.Controllers
 
             var folder = await _context.Folders
                 .Include(f => f.Parentfolder)
+                .Include(f => f.InverseParentfolder)
+                .Include(f => f.Files)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (folder == null)
             {

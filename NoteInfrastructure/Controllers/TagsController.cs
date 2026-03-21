@@ -34,6 +34,7 @@ namespace NoteInfrastructure.Controllers
             }
 
             var tag = await _context.Tags
+                .Include(t => t.Files)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (tag == null)
             {

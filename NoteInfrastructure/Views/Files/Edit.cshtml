@@ -32,6 +32,11 @@
                 <input asp-for="Createdat" class="form-control" />
                 <span asp-validation-for="Createdat" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label class="control-label">Теги</label>
+                <select name="selectedTags" class="form-control" asp-items="ViewBag.Tags" multiple="multiple"></select>
+                <small class="form-text text-muted">Затисніть Ctrl (або Cmd на Mac), щоб вибрати декілька тегів.</small>
+            </div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />

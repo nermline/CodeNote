@@ -25,7 +25,9 @@ namespace NoteInfrastructure.Controllers
         // GET: Files
         public async Task<IActionResult> Index()
         {
-            var notedbContext = _context.Files.Include(f => f.Folder);
+            var notedbContext = _context.Files
+                .Include(f => f.Folder)
+                .Include(f => f.Tags);
             return View(await notedbContext.ToListAsync());
         }
 
@@ -39,6 +41,7 @@ namespace NoteInfrastructure.Controllers
 
             var @file = await _context.Files
                 .Include(f => f.Folder)
+                .Include(f => f.Tags)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (@file == null)
             {
@@ -52,6 +55,7 @@ namespace NoteInfrastructure.Controllers
         public IActionResult Create()
         {
             ViewData["Folderid"] = new SelectList(_context.Folders, "Id", "Name");
+            ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name");
             return View();
         }
 
@@ -60,32 +64,36 @@ namespace NoteInfrastructure.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Description,Folderid,Createdat,Id")] File @file)
+        public async Task<IActionResult> Create([Bind("Name,Description,Folderid,Createdat,Id")] File @file, int[] selectedTags)
         {
             if (ModelState.IsValid)
             {
+                if (selectedTags != null && selectedTags.Length > 0)
+                {
+                    @file.Tags = await _context.Tags.Where(t => selectedTags.Contains(t.Id)).ToListAsync();
+                }
                 _context.Add(@file);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             ViewData["Folderid"] = new SelectList(_context.Folders, "Id", "Name", @file.Folderid);
+            ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name", selectedTags);
             return View(@file);
         }
 
         // GET: Files/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var @file = await _context.Files.FindAsync(id);
-            if (@file == null)
-            {
-                return NotFound();
-            }
+            var @file = await _context.Files.Include(f => f.Tags).FirstOrDefaultAsync(f => f.Id == id);
+            if (@file == null) return NotFound();
+
             ViewData["Folderid"] = new SelectList(_context.Folders, "Id", "Name", @file.Folderid);
+
+            var selectedTagIds = @file.Tags.Select(t => t.Id).ToArray();
+            ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name", selectedTagIds);
+            
             return View(@file);
         }
 
@@ -94,18 +102,36 @@ namespace NoteInfrastructure.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Name,Description,Folderid,Createdat,Id")] File @file)
+        public async Task<IActionResult> Edit(int id, [Bind("Name,Description,Folderid,Createdat,Id")] File @file, int[] selectedTags)
         {
-            if (id != @file.Id)
-            {
-                return NotFound();
-            }
+            if (id != @file.Id) return NotFound();
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(@file);
+                    var fileToUpdate = await _context.Files
+                        .Include(f => f.Tags)
+                        .FirstOrDefaultAsync(f => f.Id == id);
+
+                    if (fileToUpdate == null) return NotFound();
+
+                    fileToUpdate.Name = @file.Name;
+                    fileToUpdate.Description = @file.Description;
+                    fileToUpdate.Folderid = @file.Folderid;
+
+                    fileToUpdate.Tags.Clear();
+
+                    if (selectedTags != null && selectedTags.Length > 0)
+                    {
+                        var newTags = await _context.Tags.Where(t => selectedTags.Contains(t.Id)).ToListAsync();
+                        foreach (var tag in newTags)
+                        {
+                            fileToUpdate.Tags.Add(tag);
+                        }
+                    }
+
+                    _context.Update(fileToUpdate);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -122,6 +148,7 @@ namespace NoteInfrastructure.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["Folderid"] = new SelectList(_context.Folders, "Id", "Name", @file.Folderid);
+            ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name", selectedTags);
             return View(@file);
         }
 

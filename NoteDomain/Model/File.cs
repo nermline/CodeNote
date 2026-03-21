@@ -22,7 +22,7 @@ public partial class File: Entity
     public virtual ICollection<Fileversion> Fileversions { get; set; } = new List<Fileversion>();
 
     [Display(Name = "Місце знаходження")]
-    public virtual Folder Folder { get; set; } = null!;
+    public virtual Folder? Folder { get; set; } = null!;
 
     public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
 }

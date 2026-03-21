@@ -27,6 +27,11 @@
                 <select asp-for="Folderid" class ="form-control" asp-items="ViewBag.Folderid"></select>
             </div>
             <div class="form-group">
+                <label class="control-label">Теги</label>
+                <select name="selectedTags" class="form-control" asp-items="ViewBag.Tags" multiple="multiple"></select>
+                <small class="form-text text-muted">Затисніть Ctrl (або Cmd на Mac), щоб вибрати декілька тегів.</small>
+            </div>
+            <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>

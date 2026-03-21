@@ -24,8 +24,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.Folder)
             </th>
-            <th></th>
+            <th>Теги</th>
         </tr>
+        
     </thead>
     <tbody>
 @foreach (var item in Model) {
@@ -43,11 +44,19 @@
                 @Html.DisplayFor(modelItem => item.Folder.Name)
             </td>
             <td>
+                    @foreach (var tag in item.Tags)
+                    {
+                        <span class="badge bg-secondary">@tag.Name</span>
+                    }
+            </td>
+                
+            <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
             </td>
         </tr>
 }
+
     </tbody>
 </table>

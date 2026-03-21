@@ -24,5 +24,5 @@ public partial class Fileversion: Entity
     public DateTime? Createdat { get; set; }
 
     [Display(Name = "Цільовий файл")]
-    public virtual File File { get; set; } = null!;
+    public virtual File? File { get; set; } = null!;
 }

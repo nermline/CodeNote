@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="NoteDomain/NoteDomain.csproj" />
+  <Project Path="NoteInfrastructure/NoteInfrastructure.csproj" />
+</Solution>

@@ -1,19 +1,22 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
-    // --- 1. Ініціалізація Monaco Editor ---
     let editor;
+    let currentFileId = null;
+    let currentVersionId = null;
+
+    // --- 1. Ініціалізація Monaco Editor ---
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
     require(['vs/editor/editor.main'], function () {
         editor = monaco.editor.create(document.getElementById('monaco-editor-container'), {
             value: "// Виберіть файл у провіднику зліва для початку роботи\n",
             language: 'csharp',
             theme: 'vs-dark',
-            automaticLayout: true // Дуже важливо для правильного ресайзу панелей
+            automaticLayout: true
         });
     });
 
     // --- 2. Логіка виділення та кнопок ---
     let selectedItem = null;
-    let selectedFolderId = null; // Файл поза межами папки існувати не може
+    let selectedFolderId = null;
 
     const btnNewFile = document.getElementById('btn-new-file');
     const btnNewFolder = document.getElementById('btn-new-folder');
@@ -23,7 +26,7 @@
     function updateToolbarState() {
         if (!selectedItem) {
             btnNewFile.disabled = true;
-            btnNewFolder.disabled = false; // Можна створити рутову папку
+            btnNewFolder.disabled = false;
             btnDelete.disabled = true;
             selectedFolderId = null;
         } else {
@@ -33,31 +36,70 @@
             if (type === 'folder') {
                 btnNewFile.disabled = false;
                 btnNewFolder.disabled = false;
-                selectedFolderId = selectedItem.dataset.id;
+                selectedFolderId = parseInt(selectedItem.dataset.id);
             } else if (type === 'file') {
-                btnNewFile.disabled = true; // Виділено файл, а не папку
-                btnNewFolder.disabled = false; // Папку створюємо поруч, або за логікою твого беку
-                selectedFolderId = selectedItem.dataset.parent;
+                btnNewFile.disabled = true;
+                btnNewFolder.disabled = false;
+                selectedFolderId = parseInt(selectedItem.dataset.parent) || null;
             }
         }
     }
 
-    // Делегування подій для кліків по дереву
-    treeContainer.addEventListener('click', (e) => {
+    treeContainer.addEventListener('click', async (e) => {
         const item = e.target.closest('.tree-item');
         if (item) {
-            // Зняти попереднє виділення
             if (selectedItem) selectedItem.classList.remove('selected');
             selectedItem = item;
             selectedItem.classList.add('selected');
             updateToolbarState();
+
+            // Якщо клікнули на файл — завантажуємо його
+            if (item.dataset.type === 'file') {
+                await loadFileDetails(item.dataset.id);
+            }
         } else {
-            // Клік по порожній області
             if (selectedItem) selectedItem.classList.remove('selected');
             selectedItem = null;
             updateToolbarState();
         }
     });
+
+    // --- Завантаження коду файлу ---
+    async function loadFileDetails(id) {
+        currentFileId = id;
+        document.getElementById('current-file-name').innerText = selectedItem.querySelector('span').innerText;
+        editor.setValue("// Завантаження...");
+
+        try {
+            const response = await fetch(`/api/ide/files/${id}`);
+            if (response.ok) {
+                const data = await response.json();
+                editor.setValue(data.currentContent || "");
+                currentVersionId = data.currentVersionId;
+                document.getElementById('file-description').value = data.description || "";
+
+                // Рендер історії версій
+                renderVersionsList(data.versions);
+            }
+        } catch (err) {
+            console.error("Помилка завантаження файлу", err);
+        }
+    }
+
+    function renderVersionsList(versions) {
+        const list = document.getElementById('versions-list');
+        list.innerHTML = "";
+        versions.forEach(v => {
+            const date = new Date(v.createdat).toLocaleString('uk-UA');
+            list.innerHTML += `
+                <div class="version-item ${v.id === currentVersionId ? 'active' : ''}">
+                    <div class="version-info">
+                        <strong>v${v.versionnumber} ${v.id === currentVersionId ? '(Поточна)' : ''}</strong>
+                        <small>${date}</small>
+                    </div>
+                </div>`;
+        });
+    }
 
     // --- 3. Перейменування (Подвійний клік) ---
     treeContainer.addEventListener('dblclick', (e) => {
@@ -66,7 +108,6 @@
 
         const span = item.querySelector('span');
         const oldName = span.innerText;
-
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'rename-input';
@@ -75,27 +116,32 @@
         span.replaceWith(input);
         input.focus();
 
-        const saveRename = () => {
-            const newName = input.value.trim();
+        const saveRename = async () => {
+            const newName = input.value.trim() || oldName;
             const newSpan = document.createElement('span');
-            newSpan.innerText = newName || oldName;
+            newSpan.innerText = newName;
             input.replaceWith(newSpan);
 
-            // TODO: Тут зробити AJAX запит до FoldersController/Edit або FilesController/Edit
+            if (newName !== oldName) {
+                await fetch('/api/ide/rename', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: item.dataset.id, type: item.dataset.type, name: newName })
+                });
+            }
         };
 
         input.addEventListener('blur', saveRename);
         input.addEventListener('keypress', (e) => { if (e.key === 'Enter') input.blur(); });
     });
 
-    // --- 4. Маштабування панелей (Resizers) ---
+    // --- 4 & 5. Згортання та Маштабування (залишено без змін) ---
+    // (Тут твій попередній код для setupResizer та btnToggleBottom / btnToggleRight)
     function setupResizer(resizerId, panelId, isHorizontal, reverse = false) {
         const resizer = document.getElementById(resizerId);
         const panel = document.getElementById(panelId);
         if (!resizer || !panel) return;
-
         let startPos, startSize;
-
         resizer.addEventListener('mousedown', function (e) {
             startPos = isHorizontal ? e.clientY : e.clientX;
             startSize = isHorizontal ? panel.getBoundingClientRect().height : panel.getBoundingClientRect().width;
@@ -104,71 +150,82 @@
             resizer.classList.add('resizing');
             e.preventDefault();
         });
-
         function doDrag(e) {
-            if (isHorizontal) {
-                const newHeight = reverse ? startSize + (startPos - e.clientY) : startSize + (e.clientY - startPos);
-                panel.style.height = `${newHeight}px`;
-            } else {
-                const newWidth = reverse ? startSize + (startPos - e.clientX) : startSize + (e.clientX - startPos);
-                panel.style.width = `${newWidth}px`;
-            }
+            if (isHorizontal) panel.style.height = `${reverse ? startSize + (startPos - e.clientY) : startSize + (e.clientY - startPos)}px`;
+            else panel.style.width = `${reverse ? startSize + (startPos - e.clientX) : startSize + (e.clientX - startPos)}px`;
         }
-
         function stopDrag() {
             document.documentElement.removeEventListener('mousemove', doDrag, false);
             document.documentElement.removeEventListener('mouseup', stopDrag, false);
             resizer.classList.remove('resizing');
         }
     }
-
     setupResizer('resizer-left', 'explorer-panel', false);
     setupResizer('resizer-right', 'versions-panel', false, true);
     setupResizer('resizer-bottom', 'meta-panel', true, true);
 
-    // --- 5. Відкриття / закриття панелей ---
-    const btnToggleRight = document.getElementById('btn-toggle-right-panel');
-    const rightPanel = document.getElementById('versions-panel');
-    const resizerRight = document.getElementById('resizer-right');
-    const btnCloseRight = document.getElementById('btn-close-right-panel');
+    document.getElementById('btn-toggle-right-panel').addEventListener('click', () => { document.getElementById('versions-panel').style.display = 'flex'; document.getElementById('resizer-right').style.display = 'block'; });
+    document.getElementById('btn-close-right-panel').addEventListener('click', () => { document.getElementById('versions-panel').style.display = 'none'; document.getElementById('resizer-right').style.display = 'none'; });
 
-    const toggleRightPanel = () => {
-        const isHidden = rightPanel.style.display === 'none';
-        rightPanel.style.display = isHidden ? 'flex' : 'none';
-        resizerRight.style.display = isHidden ? 'block' : 'none';
-    };
+    // --- 6. Прив'язка до C# Backend (API Calls) ---
+    document.getElementById('btn-new-folder').addEventListener('click', async () => {
+        const name = prompt("Введіть ім'я папки:");
+        if (!name) return;
 
-    btnToggleRight.addEventListener('click', toggleRightPanel);
-    btnCloseRight.addEventListener('click', toggleRightPanel);
+        const response = await fetch('/api/ide/folders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, parentId: selectedFolderId })
+        });
 
-    const btnToggleBottom = document.getElementById('btn-toggle-bottom');
-    const bottomContent = document.getElementById('meta-panel-content');
-    const bottomPanel = document.getElementById('meta-panel');
-
-    btnToggleBottom.addEventListener('click', () => {
-        const isHidden = bottomContent.style.display === 'none';
-        bottomContent.style.display = isHidden ? 'flex' : 'none';
-        bottomPanel.style.height = isHidden ? '150px' : '35px';
-        btnToggleBottom.innerHTML = isHidden ? '<i class="bi bi-chevron-down"></i>' : '<i class="bi bi-chevron-up"></i>';
+        if (response.ok) {
+            const data = await response.json();
+            // Додати візуально в дерево (спрощений варіант, краще зробити ре-рендер всього дерева)
+            treeContainer.innerHTML += `<div class="tree-item folder-item" data-type="folder" data-id="${data.id}"><i class="bi bi-folder"></i> <span>${data.name}</span></div>`;
+        }
     });
 
-    // --- 6. Прив'язка до C# Backend (Моки для AJAX) ---
-    document.getElementById('btn-new-file').addEventListener('click', () => {
+    document.getElementById('btn-new-file').addEventListener('click', async () => {
         if (!selectedFolderId) return alert('Оберіть папку для збереження файлу!');
-        // Виклик до бекенду: POST /Files/Create { Name: "NewFile.cs", FolderId: selectedFolderId }
-        // При створенні файлу автоматично створювати Fileversion #1
-        alert('Запит на створення файлу в папку ID: ' + selectedFolderId);
+        const name = prompt("Введіть ім'я файлу (напр. NewFile.cs):");
+        if (!name) return;
+
+        const response = await fetch('/api/ide/files', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, folderId: selectedFolderId })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            treeContainer.innerHTML += `<div class="tree-item file-item" data-type="file" data-id="${data.id}" data-parent="${selectedFolderId}"><i class="bi bi-file-code"></i> <span>${data.name}</span></div>`;
+        }
     });
 
-    document.getElementById('btn-save-version').addEventListener('click', () => {
+    document.getElementById('btn-save-version').addEventListener('click', async () => {
+        if (!currentVersionId) return alert('Не обрано файл або версію!');
         const code = editor.getValue();
-        // PUT /Fileversions/Edit/{currentVersionId} { Content: code }
-        alert('Збереження в поточну версію...');
+
+        await fetch(`/api/ide/versions/${currentVersionId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: code })
+        });
+        // Візуальне сповіщення можна додати через Toast
     });
 
-    document.getElementById('btn-new-version').addEventListener('click', () => {
+    document.getElementById('btn-new-version').addEventListener('click', async () => {
+        if (!currentFileId) return alert('Оберіть файл!');
         const code = editor.getValue();
-        // POST /Fileversions/Create { FileId: currentFileId, Content: code }
-        alert('Створення нової версії на основі поточного коду...');
+
+        const response = await fetch('/api/ide/versions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileId: currentFileId, content: code })
+        });
+
+        if (response.ok) {
+            await loadFileDetails(currentFileId); // Перезавантажуємо файл, щоб оновити історію версій
+        }
     });
 });

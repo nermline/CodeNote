@@ -1,83 +1,89 @@
 ﻿@model NoteDomain.Model.File
 
 @{
-    ViewData["Title"] = "Деталі файлу";
+    ViewData["Title"] = Model.Name;
 }
 
-<h1>Деталі файлу: @Model.Name</h1>
+<div class="editor-pane h-100 d-flex flex-column">
+    <div class="editor-header d-flex justify-content-between align-items-center mb-4">
+        <div class="text-light">
+            <i class="bi bi-file-earmark-code icon-file me-2"></i>
+            <span class="fs-5">@Model.Name</span>
+            <span class="text-muted ms-2 small">~/@Model.Folder.Name/@Model.Name</span>
+        </div>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil-square"></i> Редагувати</a>
+            <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folderid" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-lg"></i> Закрити</a>
+        </div>
+    </div>
 
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Name)</dt>
-        <dd class="col-sm-10">@Html.DisplayFor(model => model.Name)</dd>
-        
-        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Description)</dt>
-        <dd class="col-sm-10">@Html.DisplayFor(model => model.Description)</dd>
-        
-        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Createdat)</dt>
-        <dd class="col-sm-10">@Html.DisplayFor(model => model.Createdat)</dd>
-        
-        <dt class="col-sm-2">Каталог</dt>
-        <dd class="col-sm-10">
-            <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folder.Id">@Model.Folder.Name</a>
-        </dd>
-        
-        <dt class="col-sm-2">Теги</dt>
-        <dd class="col-sm-10">
-            @if (Model.Tags != null && Model.Tags.Any())
+    <div class="row flex-grow-1 px-3">
+        <div class="col-md-4 border-end border-secondary">
+            <h6 class="text-muted text-uppercase mb-3"><i class="bi bi-info-circle"></i> Інспектор</h6>
+            
+            <div class="mb-3">
+                <small class="text-muted d-block">Опис</small>
+                <div class="p-2 bg-dark rounded text-light small">
+                    @(string.IsNullOrEmpty(Model.Description) ? "// Немає опису" : Model.Description)
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <small class="text-muted d-block">Створено</small>
+                <div class="text-info small">@Model.Createdat</div>
+            </div>
+
+            <div class="mb-3">
+                <small class="text-muted d-block mb-1">Теги</small>
+                <div>
+                    @if (Model.Tags != null && Model.Tags.Any())
+                    {
+                        foreach (var tag in Model.Tags)
+                        {
+                            <span class="badge bg-secondary border border-dark"><i class="bi bi-tag-fill text-success"></i> @tag.Name</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted small">// Без тегів</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8 ps-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted text-uppercase mb-0"><i class="bi bi-git"></i> Дерево версій (Source Control)</h6>
+                <a asp-controller="Fileversions" asp-action="Create" asp-route-fileId="@Model.Id" class="btn btn-sm btn-outline-info"><i class="bi bi-plus-lg"></i> Новий коміт</a>
+            </div>
+
+            @if (Model.Fileversions != null && Model.Fileversions.Any())
             {
-                foreach (var tag in Model.Tags)
-                {
-                    <span class="badge bg-secondary">@tag.Name</span>
-                }
+                <div class="list-group">
+                    @foreach (var version in Model.Fileversions)
+                    {
+                        <div class="list-group-item version-item mb-2 rounded d-flex justify-content-between align-items-center p-3">
+                            <div>
+                                <h6 class="mb-1 text-light">
+                                    <i class="bi bi-commit me-2 text-secondary"></i>Commit #@version.Id
+                                </h6>
+                            </div>
+                            <div>
+                                <a asp-controller="Fileversions" asp-action="Details" asp-route-id="@version.Id" class="btn btn-sm btn-dark text-info" title="Відкрити код"><i class="bi bi-code-slash"></i> Перегляд</a>
+                                <a asp-controller="Fileversions" asp-action="Edit" asp-route-id="@version.Id" class="btn btn-sm btn-dark text-warning" title="Змінити"><i class="bi bi-pencil"></i></a>
+                                <a asp-controller="Fileversions" asp-action="Delete" asp-route-id="@version.Id" class="btn btn-sm btn-dark text-danger" title="Видалити"><i class="bi bi-trash"></i></a>
+                            </div>
+                        </div>
+                    }
+                </div>
             }
             else
             {
-                <span>Без тегів</span>
+                <div class="p-4 bg-dark rounded border border-secondary text-center">
+                    <i class="bi bi-journal-code text-muted" style="font-size: 2rem;"></i>
+                    <p class="text-muted mt-2 small">// Версій поки немає.</p>
+                </div>
             }
-        </dd>
-    </dl>
-    
-    <h4>Версії файлу</h4>
-    <hr />
-    <p>
-        <a asp-controller="Fileversions" asp-action="Create" asp-route-fileId="@Model.Id" class="btn btn-sm btn-outline-success">Створити нову версію</a>
-    </p>
-    @if (Model.Fileversions != null && Model.Fileversions.Any())
-    {
-        <table class="table table-sm">
-            <thead>
-                <tr>
-                    <th>ID Версії (Назва)</th>
-                    <th>Дії</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var version in Model.Fileversions)
-                {
-                    <tr>
-                        <td>
-                            <a asp-controller="Fileversions" asp-action="Details" asp-route-id="@version.Id">
-                                Версія #@version.Id
-                            </a>
-                        </td>
-                        <td>
-                            <a asp-controller="Fileversions" asp-action="Edit" asp-route-id="@version.Id">Редагувати</a> |
-                            <a asp-controller="Fileversions" asp-action="Delete" asp-route-id="@version.Id">Видалити</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <p>Для цього файлу ще немає створених версій.</p>
-    }
-</div>
-
-<div class="mt-3">
-    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Редагувати файл</a> |
-    <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folderid">Повернутися до каталогу</a>
+        </div>
+    </div>
 </div>

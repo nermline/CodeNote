@@ -1,31 +1,122 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
+/* Базові налаштування IDE-теми */
 body {
-  margin-bottom: 60px;
+    background-color: #1e1e1e;
+    color: #cccccc;
+    font-family: 'Consolas', 'Courier New', monospace; /* Моноширинний шрифт для атмосфери коду */
+    margin: 0;
+    overflow: hidden; /* Забороняємо прокрутку всього вікна, як у додатку */
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/* Макет застосунку */
+.app-container {
+    display: flex;
+    height: 100vh;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+/* Бокова панель (Провідник) */
+.sidebar {
+    width: 250px;
+    background-color: #252526;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 15px 20px;
+    background-color: #333333;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.sidebar-nav .nav-link {
+    color: #cccccc;
+    padding: 8px 20px;
+    font-size: 0.95rem;
+    border-left: 3px solid transparent;
+}
+
+    .sidebar-nav .nav-link:hover {
+        background-color: #2a2d2e;
+        color: #ffffff;
+    }
+
+/* Головна робоча область */
+.main-content {
+    flex-grow: 1;
+    background-color: #1e1e1e;
+    overflow-y: auto;
+    padding: 20px 30px;
+}
+
+/* Стилі сітки провідника (для папок і файлів) */
+.explorer-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.explorer-item {
+    width: 130px;
+    padding: 15px 10px;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .explorer-item:hover {
+        background-color: #2a2d2e;
+        border-color: #3c3c3c;
+    }
+
+.explorer-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.icon-folder {
+    color: #dcb67a;
+}
+/* Жовтий як папка в VS Code */
+.icon-file {
+    color: #519aba;
+}
+/* Блакитний як код-файл */
+
+/* Стилі робочої області редактора */
+.editor-pane {
+    background-color: #1e1e1e;
+    border-radius: 4px;
+}
+
+.editor-header {
+    background-color: #2d2d2d;
+    padding: 10px 15px;
+    border-radius: 4px 4px 0 0;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+.form-control, .form-select {
+    background-color: #252526;
+    color: #cccccc;
+    border: 1px solid #3c3c3c;
+    font-family: 'Consolas', monospace;
+}
+
+    .form-control:focus, .form-select:focus {
+        background-color: #252526;
+        color: #ffffff;
+        border-color: #007acc;
+        box-shadow: none;
+    }
+
+.version-item {
+    background-color: #252526;
+    border-left: 3px solid #519aba;
 }

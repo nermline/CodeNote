@@ -46,9 +46,9 @@ namespace NoteInfrastructure.Controllers
         }
 
         // GET: Fileversions/Create
-        public IActionResult Create()
+        public IActionResult Create(int? fileId)
         {
-            ViewData["Fileid"] = new SelectList(_context.Files, "Id", "Name");
+            ViewData["Fileid"] = new SelectList(_context.Files, "Id", "Name", fileId);
             return View();
         }
 
@@ -63,7 +63,7 @@ namespace NoteInfrastructure.Controllers
             {
                 _context.Add(fileversion);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Details", "Files", new { id = fileversion.Fileid });
             }
             ViewData["Fileid"] = new SelectList(_context.Files, "Id", "Name", fileversion.Fileid);
             return View(fileversion);
@@ -116,7 +116,7 @@ namespace NoteInfrastructure.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Details", "Files", new { id = fileversion.Fileid });
             }
             ViewData["Fileid"] = new SelectList(_context.Files, "Id", "Name", fileversion.Fileid);
             return View(fileversion);

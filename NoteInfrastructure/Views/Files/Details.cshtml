@@ -41,6 +41,9 @@
     
     <h4>Версії файлу</h4>
     <hr />
+    <p>
+        <a asp-controller="Fileversions" asp-action="Create" asp-route-fileId="@Model.Id" class="btn btn-sm btn-outline-success">Створити нову версію</a>
+    </p>
     @if (Model.Fileversions != null && Model.Fileversions.Any())
     {
         <table class="table table-sm">

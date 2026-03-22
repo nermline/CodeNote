@@ -53,9 +53,9 @@ namespace NoteInfrastructure.Controllers
         }
 
         // GET: Files/Create
-        public IActionResult Create()
+        public IActionResult Create(int? folderId)
         {
-            ViewData["Folderid"] = new SelectList(_context.Folders, "Id", "Name");
+            ViewData["Folderid"] = new SelectList(_context.Folders, "Id", "Name", folderId);
             ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name");
             return View();
         }
@@ -73,10 +73,13 @@ namespace NoteInfrastructure.Controllers
                 {
                     @file.Tags = await _context.Tags.Where(t => selectedTags.Contains(t.Id)).ToListAsync();
                 }
+
                 _context.Add(@file);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                return RedirectToAction("Details", "Folders", new { id = @file.Folderid });
             }
+
             ViewData["Folderid"] = new SelectList(_context.Folders, "Id", "Name", @file.Folderid);
             ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name", selectedTags);
             return View(@file);
@@ -146,7 +149,7 @@ namespace NoteInfrastructure.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Details", "Folders", new { id = @file.Folderid });
             }
             ViewData["Folderid"] = new SelectList(_context.Folders, "Id", "Name", @file.Folderid);
             ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name", selectedTags);

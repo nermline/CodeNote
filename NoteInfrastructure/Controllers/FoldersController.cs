@@ -51,9 +51,9 @@ namespace NoteInfrastructure.Controllers
         }
 
         // GET: Folders/Create
-        public IActionResult Create()
+        public IActionResult Create(int? parentFolderId)
         {
-            ViewData["Parentfolderid"] = new SelectList(_context.Folders, "Id", "Name");
+            ViewData["Parentfolderid"] = new SelectList(_context.Folders, "Id", "Name", parentFolderId);
             return View();
         }
 
@@ -68,6 +68,10 @@ namespace NoteInfrastructure.Controllers
             {
                 _context.Add(folder);
                 await _context.SaveChangesAsync();
+                if (folder.Parentfolderid != null)
+                {
+                    return RedirectToAction("Details", new { id = folder.Parentfolderid });
+                }
                 return RedirectToAction(nameof(Index));
             }
             ViewData["Parentfolderid"] = new SelectList(_context.Folders, "Id", "Name", folder.Parentfolderid);
@@ -121,6 +125,12 @@ namespace NoteInfrastructure.Controllers
                         throw;
                     }
                 }
+
+                if (folder.Parentfolderid != null)
+                {
+                    return RedirectToAction("Details", new { id = folder.Parentfolderid });
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             ViewData["Parentfolderid"] = new SelectList(_context.Folders, "Id", "Name", folder.Parentfolderid);

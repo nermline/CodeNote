@@ -21,6 +21,9 @@
     <hr />
     
     <h5>Підкаталоги</h5>
+    <p>
+        <a asp-action="Create" asp-route-parentFolderId="@Model.Id" class="btn btn-sm btn-outline-success">Створити підкаталог тут</a>
+    </p>
     @if (Model.InverseParentfolder != null && Model.InverseParentfolder.Any())
     {
         <table class="table table-sm">
@@ -55,6 +58,9 @@
 
     <br />
     <h5>Файли</h5>
+    <p>
+        <a asp-controller="Files" asp-action="Create" asp-route-folderId="@Model.Id" class="btn btn-sm btn-outline-success">Створити файл у цьому каталозі</a>
+    </p>
     @if (Model.Files != null && Model.Files.Any())
     {
         <table class="table table-sm">

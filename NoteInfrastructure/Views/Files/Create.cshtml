@@ -1,47 +1,55 @@
-﻿@model NoteDomain.Model.File
+@model NoteDomain.Model.File
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Новий файл";
 }
 
-<h1>Create</h1>
-
-<h4>File</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Folderid" class="control-label"></label>
-                <select asp-for="Folderid" class ="form-control" asp-items="ViewBag.Folderid"></select>
-            </div>
-            <div class="form-group">
-                <label class="control-label">Теги</label>
-                <select name="selectedTags" class="form-control" asp-items="ViewBag.Tags" multiple="multiple"></select>
-                <small class="form-text text-muted">Затисніть Ctrl (або Cmd на Mac), щоб вибрати декілька тегів.</small>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        <a asp-action="Index" class="back-btn"><i class="bi bi-arrow-left"></i> Назад</a>
+        <h1 class="page-title"><i class="bi bi-file-earmark-plus"></i> Новий файл</h1>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="form-card">
+            <div class="form-card-header">
+                <h5><i class="bi bi-file-earmark-code" style="color:var(--accent)"></i> Створення файлу</h5>
+            </div>
+            <div class="form-card-body">
+                <form asp-action="Create">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="Name" class="form-label">Назва файлу</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-file-earmark-code"></i></span>
+                            <input asp-for="Name" class="form-control" placeholder="main.cs" />
+                        </div>
+                        <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Folderid" class="form-label">Розташування</label>
+                        <select asp-for="Folderid" class="form-select" asp-items="ViewBag.Folderid">
+                            <option value="">— Кореневий рівень —</option>
+                        </select>
+                    </div>
+
+                    <hr class="divider" />
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Скасувати</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-file-earmark-check"></i> Створити
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

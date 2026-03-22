@@ -1,70 +1,103 @@
-﻿@model NoteDomain.Model.File
+@model NoteDomain.Model.File
 
 @{
-    ViewData["Title"] = "Редагування - " + Model.Name;
+    ViewData["Title"] = "Редагування — " + Model.Name;
 }
 
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        <a asp-action="Index" class="back-btn"><i class="bi bi-arrow-left"></i> Файли</a>
+        <div class="editor-tab">
+            <i class="bi bi-gear" style="color:var(--text-muted)"></i>
+            settings › @Model.Name
+        </div>
+    </div>
+</div>
+
 <div class="editor-pane">
-    <div class="editor-header mb-4">
-        <h5 class="mb-0 text-light"><i class="bi bi-gear-fill text-secondary me-2"></i>settings.json > @Model.Name</h5>
+    <div class="editor-header">
+        <span style="font-family:var(--font-mono); font-size:0.8125rem; color:var(--text-muted);">
+            <i class="bi bi-pencil-square me-1" style="color:var(--yellow)"></i>
+            Редагування файлу
+        </span>
+        <span class="badge badge-folder">@(Model.Folder?.Name ?? "root")</span>
     </div>
 
-    <form asp-action="Edit" class="px-4 pb-4 row">
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    <form asp-action="Edit" class="p-4">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
         <input type="hidden" asp-for="Id" />
 
-        <div class="col-md-6">
-            <div class="form-group mb-3">
-                <label asp-for="Name" class="form-label text-info">"filename":</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-quote"></i></span>
-                    <input asp-for="Name" class="form-control" />
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">
+                        <i class="bi bi-quote me-1" style="color:var(--accent)"></i>"filename":
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-file-earmark-code"></i></span>
+                        <input asp-for="Name" class="form-control" style="font-family:var(--font-mono);" />
+                    </div>
+                    <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
                 </div>
-                <span asp-validation-for="Name" class="text-danger small"></span>
-            </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Folderid" class="form-label text-info">"directory_id":</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-folder2"></i></span>
-                    <select asp-for="Folderid" class="form-select" asp-items="ViewBag.Folderid"></select>
+                <div class="mb-3">
+                    <label asp-for="Folderid" class="form-label">
+                        <i class="bi bi-folder2 me-1" style="color:var(--yellow)"></i>"directory_id":
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-folder2"></i></span>
+                        <select asp-for="Folderid" class="form-select" asp-items="ViewBag.Folderid"></select>
+                    </div>
+                    <span asp-validation-for="Folderid" class="text-danger small mt-1 d-block"></span>
                 </div>
-                <span asp-validation-for="Folderid" class="text-danger small"></span>
-            </div>
-            
-            <div class="form-group mb-3">
-                <label asp-for="Createdat" class="form-label text-info">"created_at":</label>
-                <input asp-for="Createdat" class="form-control" readonly style="opacity: 0.7;" />
-                <span asp-validation-for="Createdat" class="text-danger small"></span>
-            </div>
-        </div>
 
-        <div class="col-md-6 d-flex flex-column">
-            <div class="form-group mb-3 flex-grow-1 d-flex flex-column">
-                <label asp-for="Description" class="form-label text-info">"description":</label>
-                <textarea asp-for="Description" class="form-control flex-grow-1" style="min-height: 120px; resize: none;"></textarea>
-                <span asp-validation-for="Description" class="text-danger small"></span>
+                <div class="mb-3">
+                    <label asp-for="Createdat" class="form-label">
+                        <i class="bi bi-clock me-1" style="color:var(--text-muted)"></i>"created_at":
+                    </label>
+                    <input asp-for="Createdat" class="form-control" readonly style="font-family:var(--font-mono);" />
+                </div>
             </div>
-        </div>
 
-        <div class="col-12 mt-2">
-            <div class="form-group mb-3">
-                <label class="form-label text-info">"tags": [</label>
-                <select name="selectedTags" class="form-select" asp-items="ViewBag.Tags" multiple="multiple" style="height: 120px;"></select>
-                <label class="form-label text-info mt-1">]</label>
-                <small class="d-block text-muted">// Використовуйте Ctrl (або Cmd), щоб вибрати декілька елементів масиву</small>
+            <div class="col-md-6 d-flex flex-column">
+                <div class="mb-3 flex-grow-1 d-flex flex-column">
+                    <label asp-for="Description" class="form-label">
+                        <i class="bi bi-text-paragraph me-1" style="color:var(--green)"></i>"description":
+                    </label>
+                    <textarea asp-for="Description" class="form-control flex-grow-1" style="min-height:120px; resize:none; font-family:var(--font-mono); font-size:0.875rem;"></textarea>
+                    <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
+                </div>
             </div>
-        </div>
 
-        <div class="col-12 mt-4 pt-3 border-top border-secondary text-end">
-            <a asp-action="Index" class="btn btn-outline-secondary me-2"><i class="bi bi-escape"></i> Скасувати</a>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-floppy"></i> Зберегти (Ctrl+S)</button>
+            <div class="col-12">
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-tags me-1" style="color:var(--purple)"></i>"tags": [
+                    </label>
+                    <select name="selectedTags" class="form-select" asp-items="ViewBag.Tags"
+                            multiple="multiple" style="height:120px;"></select>
+                    <label class="form-label mt-1">]</label>
+                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">
+                        // Утримуйте Ctrl (або Cmd), щоб вибрати декілька тегів
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <hr class="divider" />
+                <div class="d-flex gap-2 justify-content-end">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg"></i> Скасувати
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-floppy"></i> Зберегти
+                    </button>
+                </div>
+            </div>
         </div>
     </form>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

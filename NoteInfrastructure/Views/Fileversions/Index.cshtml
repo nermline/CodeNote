@@ -1,59 +1,88 @@
-﻿@model IEnumerable<NoteDomain.Model.Fileversion>
+@model IEnumerable<NoteDomain.Model.Fileversion>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Версії файлів";
 }
 
-<h1>Index</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="bi bi-git"></i> Версії файлів</h1>
+        <div class="breadcrumb-path"><i class="bi bi-hdd-network me-1"></i> root / fileversions /</div>
+    </div>
+    <a asp-action="Create" class="btn btn-outline-success">
+        <i class="bi bi-plus-lg"></i> Новий коміт
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Content)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Versionnumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Changelog)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Createdat)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.File)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Content)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Versionnumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Changelog)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Createdat)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.File.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@if (Model.Any())
+{
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Версія</th>
+                        <th>Файл</th>
+                        <th>Changelog</th>
+                        <th>Дата</th>
+                        <th class="text-end pe-4">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge badge-version">v@item.Versionnumber</span>
+                            </td>
+                            <td>
+                                @if (item.File != null)
+                                {
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-file-earmark-code" style="color:var(--accent); font-size:0.9rem;"></i>
+                                        <span style="font-size:0.875rem;">@item.File.Name</span>
+                                    </div>
+                                }
+                                else { <span style="color:var(--text-muted);">—</span> }
+                            </td>
+                            <td style="color:var(--text-muted); font-size:0.825rem; max-width:200px;">
+                                <span class="text-truncate d-block">
+                                    @(string.IsNullOrEmpty(item.Changelog) ? "—" : item.Changelog)
+                                </span>
+                            </td>
+                            <td style="color:var(--text-muted); font-size:0.825rem; font-family:var(--font-mono);">
+                                @(item.Createdat.HasValue ? item.Createdat.Value.ToString("dd.MM.yyyy HH:mm") : "—")
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary btn-icon" title="Деталі">
+                                        <i class="bi bi-code-slash"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning btn-icon" title="Редагувати">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger btn-icon" title="Видалити">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="card">
+        <div class="empty-state">
+            <i class="bi bi-journal-code"></i>
+            <h5>Версій ще немає</h5>
+            <p>Зробіть перший коміт, щоб почати відстежувати зміни файлів.</p>
+            <a asp-action="Create" class="btn btn-outline-success mt-2">
+                <i class="bi bi-plus-lg"></i> Перший коміт
+            </a>
+        </div>
+    </div>
+}

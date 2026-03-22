@@ -1,26 +1,55 @@
-﻿@model IEnumerable<NoteDomain.Model.Folder>
+@model IEnumerable<NoteDomain.Model.Folder>
 
 @{
-    ViewData["Title"] = "Провідник - Каталоги";
+    ViewData["Title"] = "Провідник";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
-    <h4 class="mb-0 text-light"><i class="bi bi-hdd-network"></i> root/folders/</h4>
-    <a asp-action="Create" class="btn btn-sm btn-outline-info"><i class="bi bi-folder-plus"></i> Створити каталог</a>
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="bi bi-folder2"></i> Каталоги</h1>
+        <div class="breadcrumb-path"><i class="bi bi-hdd-network me-1"></i> root / folders /</div>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-folder-plus"></i> Новий каталог
+    </a>
 </div>
 
-<div class="explorer-grid">
-    @foreach (var item in Model)
-    {
-        <div class="explorer-item position-relative group">
-            <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-light d-block">
-                <i class="bi bi-folder-fill explorer-icon icon-folder"></i>
-                <div class="text-truncate small mt-2" title="@item.Name">@item.Name</div>
-            </a>
-            <div class="mt-2 d-flex justify-content-center gap-3">
-                <a asp-action="Edit" asp-route-id="@item.Id" class="text-warning text-decoration-none" title="Перейменувати"><i class="bi bi-pencil"></i></a>
-                <a asp-action="Delete" asp-route-id="@item.Id" class="text-danger text-decoration-none" title="Видалити"><i class="bi bi-trash"></i></a>
+@if (Model.Any())
+{
+    <div class="explorer-grid">
+        @foreach (var item in Model)
+        {
+            <div class="explorer-item">
+                <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none d-block">
+                    <i class="bi bi-folder-fill explorer-icon"></i>
+                    <div class="text-truncate" style="font-size:0.8125rem; color:var(--text-primary); font-weight:500;" title="@item.Name">@item.Name</div>
+                    @if (item.Createdat.HasValue)
+                    {
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.2rem;">@item.Createdat.Value.ToString("dd.MM.yyyy")</div>
+                    }
+                </a>
+                <div class="explorer-item-actions">
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning btn-icon" title="Перейменувати">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger btn-icon" title="Видалити">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
             </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="empty-state">
+            <i class="bi bi-folder2-open"></i>
+            <h5>Каталогів ще немає</h5>
+            <p>Створіть перший каталог, щоб організувати ваші файли.</p>
+            <a asp-action="Create" class="btn btn-primary mt-2">
+                <i class="bi bi-folder-plus"></i> Створити каталог
+            </a>
         </div>
-    }
-</div>
+    </div>
+}

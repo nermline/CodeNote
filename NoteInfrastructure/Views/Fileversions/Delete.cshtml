@@ -1,51 +1,66 @@
-﻿@model NoteDomain.Model.Fileversion
+@model NoteDomain.Model.Fileversion
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Видалення коміту #" + Model.Id;
 }
 
-<h1>Delete</h1>
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        <a asp-action="Index" class="back-btn"><i class="bi bi-arrow-left"></i> Назад</a>
+        <h1 class="page-title" style="color:var(--red)"><i class="bi bi-trash"></i> Видалення коміту</h1>
+    </div>
+</div>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Fileversion</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Content)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Content)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Versionnumber)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Versionnumber)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Changelog)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Changelog)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Createdat)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Createdat)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.File)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.File.Name)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="danger-zone">
+            <div class="danger-zone-header">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Ця дія незворотна
+            </div>
+            <div class="danger-zone-body">
+                <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1.25rem;">
+                    Ви збираєтесь видалити <strong style="color:var(--text-primary);">Commit #@Model.Id (v@Model.Versionnumber)</strong>.
+                    Вміст цієї версії буде втрачено назавжди.
+                </p>
+
+                <div class="card mb-4" style="background:var(--bg-base);">
+                    <div class="card-body p-0">
+                        <div class="detail-row px-3">
+                            <span class="detail-key">Commit ID</span>
+                            <span class="detail-val" style="color:var(--accent);">#@Model.Id</span>
+                        </div>
+                        <div class="detail-row px-3">
+                            <span class="detail-key">Версія</span>
+                            <span class="detail-val">v@Model.Versionnumber</span>
+                        </div>
+                        <div class="detail-row px-3">
+                            <span class="detail-key">Changelog</span>
+                            <span class="detail-val" style="font-family:var(--font-ui); color:var(--text-muted);">
+                                @(string.IsNullOrEmpty(Model.Changelog) ? "—" : Model.Changelog)
+                            </span>
+                        </div>
+                        <div class="detail-row px-3">
+                            <span class="detail-key">Дата</span>
+                            <span class="detail-val">@Html.DisplayFor(model => model.Createdat)</span>
+                        </div>
+                        <div class="detail-row px-3">
+                            <span class="detail-key">Файл</span>
+                            <span class="detail-val">@(Model.File?.Name ?? "—")</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Скасувати</a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash-fill"></i> Підтвердити видалення
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>

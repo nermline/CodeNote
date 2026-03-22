@@ -1,54 +1,83 @@
-﻿@model NoteDomain.Model.Fileversion
+@model NoteDomain.Model.Fileversion
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Редагування коміту";
 }
 
-<h1>Edit</h1>
-
-<h4>Fileversion</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Fileid" class="control-label"></label>
-                <select asp-for="Fileid" class="form-control" asp-items="ViewBag.Fileid"></select>
-                <span asp-validation-for="Fileid" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Content" class="control-label"></label>
-                <input asp-for="Content" class="form-control" />
-                <span asp-validation-for="Content" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Versionnumber" class="control-label"></label>
-                <input asp-for="Versionnumber" class="form-control" />
-                <span asp-validation-for="Versionnumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Changelog" class="control-label"></label>
-                <input asp-for="Changelog" class="form-control" />
-                <span asp-validation-for="Changelog" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Createdat" class="control-label"></label>
-                <input asp-for="Createdat" class="form-control" />
-                <span asp-validation-for="Createdat" class="text-danger"></span>
-            </div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        <a asp-action="Index" class="back-btn"><i class="bi bi-arrow-left"></i> Версії</a>
+        <div class="editor-tab">
+            <i class="bi bi-git" style="color:var(--green)"></i>
+            Commit #@Model.Id
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="row justify-content-center">
+    <div class="col-md-9 col-lg-7">
+        <div class="form-card">
+            <div class="form-card-header">
+                <h5>
+                    <i class="bi bi-pencil-square" style="color:var(--yellow)"></i>
+                    Редагування версії
+                </h5>
+                <span class="badge badge-version">v@Model.Versionnumber</span>
+            </div>
+            <div class="form-card-body">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label asp-for="Fileid" class="form-label">Файл</label>
+                            <select asp-for="Fileid" class="form-select" asp-items="ViewBag.Fileid"></select>
+                            <span asp-validation-for="Fileid" class="text-danger small mt-1 d-block"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Versionnumber" class="form-label">Номер версії</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="font-family:var(--font-mono);">v</span>
+                                <input asp-for="Versionnumber" class="form-control" style="font-family:var(--font-mono);" />
+                            </div>
+                            <span asp-validation-for="Versionnumber" class="text-danger small mt-1 d-block"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Changelog" class="form-label">Опис змін (Changelog)</label>
+                        <input asp-for="Changelog" class="form-control" />
+                        <span asp-validation-for="Changelog" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Content" class="form-label">
+                            <i class="bi bi-code-slash me-1" style="color:var(--green)"></i>Вміст файлу
+                        </label>
+                        <textarea asp-for="Content" class="form-control code-area" rows="14"></textarea>
+                        <span asp-validation-for="Content" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Createdat" class="form-label">Дата створення</label>
+                        <input asp-for="Createdat" class="form-control" readonly />
+                        <span asp-validation-for="Createdat" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <hr class="divider" />
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Скасувати</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-floppy"></i> Зберегти
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

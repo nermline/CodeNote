@@ -1,62 +1,106 @@
-﻿@model IEnumerable<NoteDomain.Model.File>
+@model IEnumerable<NoteDomain.Model.File>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Файли";
 }
 
-<h1>Index</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="bi bi-file-earmark-code"></i> Файли</h1>
+        <div class="breadcrumb-path"><i class="bi bi-hdd-network me-1"></i> root / files /</div>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Новий файл
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Createdat)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Folder)
-            </th>
-            <th>Теги</th>
-        </tr>
-        
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Createdat)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Folder.Name)
-            </td>
-            <td>
-                    @foreach (var tag in item.Tags)
+<div class="card">
+    @if (Model.Any())
+    {
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Назва</th>
+                        <th>Папка</th>
+                        <th>Теги</th>
+                        <th>Дата</th>
+                        <th class="text-end pe-4">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
                     {
-                        <span class="badge bg-secondary">@tag.Name</span>
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="file-icon-wrap">
+                                        <i class="bi bi-file-earmark-code"></i>
+                                    </div>
+                                    <a asp-action="Details" asp-route-id="@item.Id"
+                                       class="text-decoration-none fw-medium" style="color:var(--text-primary);">
+                                        @item.Name
+                                    </a>
+                                </div>
+                            </td>
+                            <td>
+                                @if (item.Folder != null)
+                                {
+                                    <span class="badge badge-folder"><i class="bi bi-folder2 me-1"></i>@item.Folder.Name</span>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--text-muted); font-size:0.8rem;">—</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.Tags != null && item.Tags.Any())
+                                {
+                                    foreach (var tag in item.Tags.Take(3))
+                                    {
+                                        <span class="badge badge-tag me-1">@tag.Name</span>
+                                    }
+                                    if (item.Tags.Count() > 3)
+                                    {
+                                        <span style="color:var(--text-muted); font-size:0.75rem;">+@(item.Tags.Count()-3)</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span style="color:var(--text-muted); font-size:0.8rem;">—</span>
+                                }
+                            </td>
+                            <td style="color:var(--text-muted); font-size:0.825rem; font-family:var(--font-mono);">
+                                @(item.Createdat.HasValue ? item.Createdat.Value.ToString("dd.MM.yyyy") : "—")
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary btn-icon" title="Деталі">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning btn-icon" title="Редагувати">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger btn-icon" title="Видалити">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
                     }
-            </td>
-                
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-
-    </tbody>
-</table>
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h5>Файлів ще немає</h5>
+            <p>Натисніть «Новий файл», щоб додати перший документ.</p>
+            <a asp-action="Create" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-lg"></i> Новий файл
+            </a>
+        </div>
+    }
+</div>

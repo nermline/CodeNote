@@ -1,77 +1,128 @@
-﻿@model NoteDomain.Model.File
+@model NoteDomain.Model.File
 
 @{
     ViewData["Title"] = Model.Name;
 }
 
-<div class="editor-pane h-100 d-flex flex-column">
-    <div class="editor-header d-flex justify-content-between align-items-center mb-4">
-        <div class="text-light">
-            <i class="bi bi-file-earmark-code icon-file me-2"></i>
-            <span class="fs-5">@Model.Name</span>
-            <span class="text-muted ms-2 small">~/@Model.Folder.Name/@Model.Name</span>
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folderid" class="back-btn">
+            <i class="bi bi-arrow-left"></i> @(Model.Folder?.Name ?? "Назад")
+        </a>
+        <div class="editor-tab">
+            <i class="bi bi-file-earmark-code"></i>
+            @Model.Name
+            <span class="tab-close ms-1"><i class="bi bi-x"></i></span>
         </div>
-        <div>
-            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil-square"></i> Редагувати</a>
-            <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folderid" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-lg"></i> Закрити</a>
-        </div>
+        <span class="breadcrumb-path">
+            <i class="bi bi-hdd-network"></i>
+            <span>~/</span>@(Model.Folder?.Name ?? "root")<span>/</span>@Model.Name
+        </span>
     </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">
+            <i class="bi bi-pencil-square"></i> Редагувати
+        </a>
+        <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger btn-icon" title="Видалити">
+            <i class="bi bi-trash"></i>
+        </a>
+    </div>
+</div>
 
-    <div class="row flex-grow-1 px-3">
-        <div class="col-md-4 border-end border-secondary">
-            <h6 class="text-muted text-uppercase mb-3"><i class="bi bi-info-circle"></i> Інспектор</h6>
-            
-            <div class="mb-3">
-                <small class="text-muted d-block">Опис</small>
-                <div class="p-2 bg-dark rounded text-light small">
-                    @(string.IsNullOrEmpty(Model.Description) ? "// Немає опису" : Model.Description)
+<div class="editor-pane">
+    <div class="row g-0" style="min-height:60vh;">
+        <!-- Inspector sidebar -->
+        <div class="col-md-3 editor-sidebar">
+            <h6><i class="bi bi-info-circle"></i> Інспектор</h6>
+
+            <div class="inspector-row">
+                <div class="inspector-label">Назва файлу</div>
+                <div class="inspector-value">@Model.Name</div>
+            </div>
+
+            <div class="inspector-row">
+                <div class="inspector-label">Розташування</div>
+                <div class="inspector-value">@(Model.Folder?.Name ?? "root")</div>
+            </div>
+
+            <div class="inspector-row">
+                <div class="inspector-label">Опис</div>
+                <div class="inspector-value @(string.IsNullOrEmpty(Model.Description) ? "muted" : "")">
+                    @(string.IsNullOrEmpty(Model.Description) ? "// немає опису" : Model.Description)
                 </div>
             </div>
-            
-            <div class="mb-3">
-                <small class="text-muted d-block">Створено</small>
-                <div class="text-info small">@Model.Createdat</div>
+
+            <div class="inspector-row">
+                <div class="inspector-label">Створено</div>
+                <div class="inspector-value" style="color:var(--accent);">
+                    @(Model.Createdat.HasValue ? Model.Createdat.Value.ToString("dd.MM.yyyy HH:mm") : "—")
+                </div>
             </div>
 
-            <div class="mb-3">
-                <small class="text-muted d-block mb-1">Теги</small>
-                <div>
-                    @if (Model.Tags != null && Model.Tags.Any())
+            <hr class="divider" />
+
+            <h6><i class="bi bi-tags"></i> Теги</h6>
+            <div>
+                @if (Model.Tags != null && Model.Tags.Any())
+                {
+                    foreach (var tag in Model.Tags)
                     {
-                        foreach (var tag in Model.Tags)
-                        {
-                            <span class="badge bg-secondary border border-dark"><i class="bi bi-tag-fill text-success"></i> @tag.Name</span>
-                        }
+                        <span class="tag-pill me-1 mb-1">
+                            <i class="bi bi-tag-fill"></i> @tag.Name
+                        </span>
                     }
-                    else
-                    {
-                        <span class="text-muted small">// Без тегів</span>
-                    }
-                </div>
+                }
+                else
+                {
+                    <span class="inspector-value muted">// без тегів</span>
+                }
             </div>
         </div>
 
-        <div class="col-md-8 ps-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-muted text-uppercase mb-0"><i class="bi bi-git"></i> Дерево версій (Source Control)</h6>
-                <a asp-controller="Fileversions" asp-action="Create" asp-route-fileId="@Model.Id" class="btn btn-sm btn-outline-info"><i class="bi bi-plus-lg"></i> Новий коміт</a>
+        <!-- Version list -->
+        <div class="col-md-9 p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="section-label"><i class="bi bi-git"></i> Source Control — дерево версій</div>
+                <a asp-controller="Fileversions" asp-action="Create" asp-route-fileId="@Model.Id"
+                   class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-plus-lg"></i> Новий коміт
+                </a>
             </div>
 
             @if (Model.Fileversions != null && Model.Fileversions.Any())
             {
-                <div class="list-group">
+                <div class="commit-list">
                     @foreach (var version in Model.Fileversions)
                     {
-                        <div class="list-group-item version-item mb-2 rounded d-flex justify-content-between align-items-center p-3">
-                            <div>
-                                <h6 class="mb-1 text-light">
-                                    <i class="bi bi-commit me-2 text-secondary"></i>Commit #@version.Id
-                                </h6>
+                        <div class="commit-item">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="commit-hash">#@version.Id</span>
+                                <div>
+                                    <div style="font-size:0.875rem; color:var(--text-primary); font-weight:500;">
+                                        @(string.IsNullOrEmpty(version.Changelog) ? "Без опису коміту" : version.Changelog)
+                                    </div>
+                                    <div class="commit-meta">
+                                        v@version.Versionnumber
+                                        @if (version.Createdat.HasValue)
+                                        {
+                                            <span class="ms-2">· @version.Createdat.Value.ToString("dd.MM.yyyy HH:mm")</span>
+                                        }
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <a asp-controller="Fileversions" asp-action="Details" asp-route-id="@version.Id" class="btn btn-sm btn-dark text-info" title="Відкрити код"><i class="bi bi-code-slash"></i> Перегляд</a>
-                                <a asp-controller="Fileversions" asp-action="Edit" asp-route-id="@version.Id" class="btn btn-sm btn-dark text-warning" title="Змінити"><i class="bi bi-pencil"></i></a>
-                                <a asp-controller="Fileversions" asp-action="Delete" asp-route-id="@version.Id" class="btn btn-sm btn-dark text-danger" title="Видалити"><i class="bi bi-trash"></i></a>
+                            <div class="d-flex gap-1">
+                                <a asp-controller="Fileversions" asp-action="Details" asp-route-id="@version.Id"
+                                   class="btn btn-sm btn-outline-primary btn-icon" title="Переглянути код">
+                                    <i class="bi bi-code-slash"></i>
+                                </a>
+                                <a asp-controller="Fileversions" asp-action="Edit" asp-route-id="@version.Id"
+                                   class="btn btn-sm btn-warning btn-icon" title="Редагувати">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-controller="Fileversions" asp-action="Delete" asp-route-id="@version.Id"
+                                   class="btn btn-sm btn-danger btn-icon" title="Видалити">
+                                    <i class="bi bi-trash"></i>
+                                </a>
                             </div>
                         </div>
                     }
@@ -79,9 +130,14 @@
             }
             else
             {
-                <div class="p-4 bg-dark rounded border border-secondary text-center">
-                    <i class="bi bi-journal-code text-muted" style="font-size: 2rem;"></i>
-                    <p class="text-muted mt-2 small">// Версій поки немає.</p>
+                <div class="empty-state">
+                    <i class="bi bi-journal-code"></i>
+                    <h5>Версій ще немає</h5>
+                    <p>Зробіть перший коміт, щоб почати відстежувати зміни цього файлу.</p>
+                    <a asp-controller="Fileversions" asp-action="Create" asp-route-fileId="@Model.Id"
+                       class="btn btn-outline-success mt-2">
+                        <i class="bi bi-plus-lg"></i> Перший коміт
+                    </a>
                 </div>
             }
         </div>

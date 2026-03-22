@@ -1,8 +1,104 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="hero-section mb-4">
+    <div class="position-relative" style="z-index:1">
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="quick-link-icon" style="background: rgba(88,166,255,.12); color: var(--accent); font-size:1.5rem; width:52px; height:52px;">
+                <i class="bi bi-code-slash"></i>
+            </div>
+            <div>
+                <h2 class="mb-0 fw-bold" style="font-size:1.5rem; color: var(--text-primary);">Ласкаво просимо до CodeNote</h2>
+                <p class="mb-0" style="color: var(--text-secondary); font-size:0.875rem;">Менеджер файлів та версій вашого коду</p>
+            </div>
+        </div>
+        <p style="color: var(--text-muted); max-width: 520px; font-size: 0.9rem; margin: 0;">
+            Організовуйте код у папках, відстежуйте зміни через версії, і класифікуйте файли за тегами.
+        </p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <a asp-controller="Folders" asp-action="Index" class="quick-link">
+            <div class="quick-link-icon" style="background: rgba(210,153,34,.12); color: var(--yellow);">
+                <i class="bi bi-folder-fill"></i>
+            </div>
+            <div>
+                <div style="font-weight:600; font-size:0.9375rem;">Папки</div>
+                <div style="font-size:0.8rem; color: var(--text-muted);">Провідник каталогів</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <a asp-controller="Files" asp-action="Index" class="quick-link">
+            <div class="quick-link-icon" style="background: rgba(88,166,255,.12); color: var(--accent);">
+                <i class="bi bi-file-earmark-code-fill"></i>
+            </div>
+            <div>
+                <div style="font-weight:600; font-size:0.9375rem;">Файли</div>
+                <div style="font-size:0.8rem; color: var(--text-muted);">Всі документи</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <a asp-controller="Tags" asp-action="Index" class="quick-link">
+            <div class="quick-link-icon" style="background: rgba(188,140,255,.12); color: var(--purple);">
+                <i class="bi bi-tags-fill"></i>
+            </div>
+            <div>
+                <div style="font-weight:600; font-size:0.9375rem;">Теги</div>
+                <div style="font-size:0.8rem; color: var(--text-muted);">Класифікація</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <a asp-controller="Fileversions" asp-action="Index" class="quick-link">
+            <div class="quick-link-icon" style="background: rgba(63,185,80,.12); color: var(--green);">
+                <i class="bi bi-git"></i>
+            </div>
+            <div>
+                <div style="font-weight:600; font-size:0.9375rem;">Версії</div>
+                <div style="font-size:0.8rem; color: var(--text-muted);">Source control</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header-custom">
+        <span class="header-title"><i class="bi bi-terminal"></i> Швидкий старт</span>
+    </div>
+    <div class="card-body" style="padding: 1.25rem 1.5rem;">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+                    <div style="width:28px; height:28px; border-radius:50%; background: rgba(88,166,255,.12); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.75rem; font-weight:700; margin-top:0.1rem;">1</div>
+                    <div>
+                        <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary); margin-bottom:0.25rem;">Створіть папку</div>
+                        <div style="font-size:0.8125rem; color:var(--text-muted);">Організуйте файли у зручних каталогах</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+                    <div style="width:28px; height:28px; border-radius:50%; background: rgba(88,166,255,.12); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.75rem; font-weight:700; margin-top:0.1rem;">2</div>
+                    <div>
+                        <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary); margin-bottom:0.25rem;">Додайте файли</div>
+                        <div style="font-size:0.8125rem; color:var(--text-muted);">Завантажте код та документи до папок</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+                    <div style="width:28px; height:28px; border-radius:50%; background: rgba(88,166,255,.12); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.75rem; font-weight:700; margin-top:0.1rem;">3</div>
+                    <div>
+                        <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary); margin-bottom:0.25rem;">Контролюйте версії</div>
+                        <div style="font-size:0.8125rem; color:var(--text-muted);">Зберігайте коміти і стежте за змінами</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

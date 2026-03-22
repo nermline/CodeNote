@@ -1,100 +1,126 @@
-﻿@model NoteDomain.Model.Folder
+@model NoteDomain.Model.Folder
 
 @{
-    ViewData["Title"] = "Деталі каталогу";
+    ViewData["Title"] = Model.Name;
 }
 
-<h1>Деталі каталогу: @Model.Name</h1>
-
-<div>
-    <h4>Інформація про каталог</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Name)</dt>
-        <dd class="col-sm-10">@Html.DisplayFor(model => model.Name)</dd>
-        
-        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Createdat)</dt>
-        <dd class="col-sm-10">@Html.DisplayFor(model => model.Createdat)</dd>
-    </dl>
-
-    <h4>Вміст каталогу</h4>
-    <hr />
-    
-    <h5>Підкаталоги</h5>
-    <p>
-        <a asp-action="Create" asp-route-parentFolderId="@Model.Id" class="btn btn-sm btn-outline-success">Створити підкаталог тут</a>
-    </p>
-    @if (Model.InverseParentfolder != null && Model.InverseParentfolder.Any())
-    {
-        <table class="table table-sm">
-            <thead>
-                <tr>
-                    <th>Назва підкаталогу</th>
-                    <th>Дата створення</th>
-                    <th>Дії</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var subfolder in Model.InverseParentfolder)
-                {
-                    <tr>
-                        <td>
-                            <a asp-action="Details" asp-route-id="@subfolder.Id">@subfolder.Name</a>
-                        </td>
-                        <td>@subfolder.Createdat</td>
-                        <td>
-                            <a asp-action="Edit" asp-route-id="@subfolder.Id">Редагувати</a> |
-                            <a asp-action="Delete" asp-route-id="@subfolder.Id">Видалити</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <p>Немає підкаталогів.</p>
-    }
-
-    <br />
-    <h5>Файли</h5>
-    <p>
-        <a asp-controller="Files" asp-action="Create" asp-route-folderId="@Model.Id" class="btn btn-sm btn-outline-success">Створити файл у цьому каталозі</a>
-    </p>
-    @if (Model.Files != null && Model.Files.Any())
-    {
-        <table class="table table-sm">
-            <thead>
-                <tr>
-                    <th>Назва файлу</th>
-                    <th>Опис</th>
-                    <th>Дії</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var file in Model.Files)
-                {
-                    <tr>
-                        <td>
-                            <a asp-controller="Files" asp-action="Details" asp-route-id="@file.Id">@file.Name</a>
-                        </td>
-                        <td>@file.Description</td>
-                        <td>
-                            <a asp-controller="Files" asp-action="Edit" asp-route-id="@file.Id">Редагувати</a> |
-                            <a asp-controller="Files" asp-action="Delete" asp-route-id="@file.Id">Видалити</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <p>Немає файлів у цьому каталозі.</p>
-    }
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        <a asp-action="Index" class="back-btn"><i class="bi bi-arrow-left"></i> Каталоги</a>
+        <h1 class="page-title">
+            <i class="bi bi-folder-fill" style="color:var(--yellow)"></i>
+            @Model.Name
+        </h1>
+        @if (Model.Createdat.HasValue)
+        {
+            <span style="font-size:0.8rem; color:var(--text-muted); font-family:var(--font-mono);">@Model.Createdat.Value.ToString("dd.MM.yyyy")</span>
+        }
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Редагувати
+        </a>
+        <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger">
+            <i class="bi bi-trash"></i>
+        </a>
+    </div>
 </div>
 
-<div class="mt-3">
-    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Редагувати поточний каталог</a> |
-    <a asp-action="Index">Повернутися до списку</a>
+<div class="row g-3">
+    <!-- Subfolders -->
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header-custom">
+                <span class="header-title"><i class="bi bi-folder2"></i> Підкаталоги</span>
+                <a asp-action="Create" asp-route-parentFolderId="@Model.Id" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-folder-plus"></i> Новий
+                </a>
+            </div>
+
+            @if (Model.InverseParentfolder != null && Model.InverseParentfolder.Any())
+            {
+                <div class="card-body p-0">
+                    @foreach (var subfolder in Model.InverseParentfolder)
+                    {
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1.1rem; border-bottom:1px solid var(--border-muted);">
+                            <a asp-action="Details" asp-route-id="@subfolder.Id" class="d-flex align-items-center gap-2 text-decoration-none" style="color:var(--text-primary);">
+                                <i class="bi bi-folder-fill" style="color:var(--yellow);"></i>
+                                <span style="font-size:0.9rem;">@subfolder.Name</span>
+                            </a>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Edit" asp-route-id="@subfolder.Id" class="btn btn-sm btn-warning btn-icon" title="Редагувати"><i class="bi bi-pencil"></i></a>
+                                <a asp-action="Delete" asp-route-id="@subfolder.Id" class="btn btn-sm btn-danger btn-icon" title="Видалити"><i class="bi bi-trash"></i></a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state" style="padding:2rem 1rem;">
+                    <i class="bi bi-folder2-open" style="font-size:2rem;"></i>
+                    <p>Немає підкаталогів</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Files -->
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header-custom">
+                <span class="header-title"><i class="bi bi-file-earmark-code"></i> Файли</span>
+                <a asp-controller="Files" asp-action="Create" asp-route-folderId="@Model.Id" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-plus-lg"></i> Новий файл
+                </a>
+            </div>
+
+            @if (Model.Files != null && Model.Files.Any())
+            {
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">Назва</th>
+                                <th>Опис</th>
+                                <th class="text-end pe-3">Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var file in Model.Files)
+                            {
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-file-earmark-code" style="color:var(--accent);"></i>
+                                            <a asp-controller="Files" asp-action="Details" asp-route-id="@file.Id"
+                                               class="text-decoration-none" style="color:var(--text-primary); font-size:0.9rem;">
+                                                @file.Name
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--text-muted); font-size:0.825rem; max-width:180px;">
+                                        <span class="text-truncate d-block">@(string.IsNullOrEmpty(file.Description) ? "—" : file.Description)</span>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <div class="d-flex gap-1 justify-content-end">
+                                            <a asp-controller="Files" asp-action="Edit" asp-route-id="@file.Id" class="btn btn-sm btn-warning btn-icon" title="Редагувати"><i class="bi bi-pencil"></i></a>
+                                            <a asp-controller="Files" asp-action="Delete" asp-route-id="@file.Id" class="btn btn-sm btn-danger btn-icon" title="Видалити"><i class="bi bi-trash"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state" style="padding:2rem 1rem;">
+                    <i class="bi bi-file-earmark-plus" style="font-size:2rem;"></i>
+                    <p>Немає файлів у цьому каталозі</p>
+                </div>
+            }
+        </div>
+    </div>
 </div>

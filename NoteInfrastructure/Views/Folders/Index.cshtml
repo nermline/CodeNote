@@ -1,47 +1,39 @@
 ﻿@model IEnumerable<NoteDomain.Model.Folder>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Кореневі каталоги";
 }
 
-<h1>Index</h1>
+<h1>Кореневі каталоги</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Створити новий каталог</a>
 </p>
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Createdat)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Parentfolder)
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>@Html.DisplayNameFor(model => model.Createdat)</th>
+            <th>Дії</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Createdat)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Parentfolder.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </a>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Createdat)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Редагувати</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Видалити</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

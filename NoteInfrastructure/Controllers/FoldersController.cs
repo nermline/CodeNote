@@ -22,8 +22,11 @@ namespace NoteInfrastructure.Controllers
         // GET: Folders
         public async Task<IActionResult> Index()
         {
-            var notedbContext = _context.Folders.Include(f => f.Parentfolder);
-            return View(await notedbContext.ToListAsync());
+            var rootFolders = _context.Folders
+                .Include(f => f.Parentfolder)
+                .Where(f => f.Parentfolderid == null);
+
+            return View(await rootFolders.ToListAsync());
         }
 
         // GET: Folders/Details/5

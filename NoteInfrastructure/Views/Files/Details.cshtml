@@ -1,42 +1,29 @@
 ﻿@model NoteDomain.Model.File
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Деталі файлу";
 }
 
-<h1>Details</h1>
+<h1>Деталі файлу: @Model.Name</h1>
 
 <div>
-    <h4>File</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Name)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Name)</dd>
+        
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Description)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Description)</dd>
+        
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Createdat)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Createdat)</dd>
+        
+        <dt class="col-sm-2">Каталог</dt>
+        <dd class="col-sm-10">
+            <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folder.Id">@Model.Folder.Name</a>
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Createdat)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Createdat)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Folder)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Folder.Name)
-        </dd>
-        <dt class="col-sm-2">
-            Теги
-        </dt>
+        
+        <dt class="col-sm-2">Теги</dt>
         <dd class="col-sm-10">
             @if (Model.Tags != null && Model.Tags.Any())
             {
@@ -51,24 +38,30 @@
             }
         </dd>
     </dl>
+    
     <h4>Версії файлу</h4>
     <hr />
     @if (Model.Fileversions != null && Model.Fileversions.Any())
     {
-        <table class="table">
+        <table class="table table-sm">
             <thead>
                 <tr>
-                    <th>Версія / Назва</th>
-                    <th>Дія</th>
+                    <th>ID Версії (Назва)</th>
+                    <th>Дії</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var version in Model.Fileversions)
                 {
                     <tr>
-                        <td>@version.Id</td>
                         <td>
-                            <a asp-controller="Fileversions" asp-action="Details" asp-route-id="@version.Id">Деталі версії</a>
+                            <a asp-controller="Fileversions" asp-action="Details" asp-route-id="@version.Id">
+                                Версія #@version.Id
+                            </a>
+                        </td>
+                        <td>
+                            <a asp-controller="Fileversions" asp-action="Edit" asp-route-id="@version.Id">Редагувати</a> |
+                            <a asp-controller="Fileversions" asp-action="Delete" asp-route-id="@version.Id">Видалити</a>
                         </td>
                     </tr>
                 }
@@ -80,7 +73,8 @@
         <p>Для цього файлу ще немає створених версій.</p>
     }
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Редагувати файл</a> |
+    <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folderid">Повернутися до каталогу</a>
 </div>

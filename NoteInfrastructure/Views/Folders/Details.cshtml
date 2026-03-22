@@ -1,72 +1,94 @@
 ﻿@model NoteDomain.Model.Folder
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Деталі каталогу";
 }
 
-<h1>Details</h1>
+<h1>Деталі каталогу: @Model.Name</h1>
 
 <div>
-    <h4>Folder</h4>
+    <h4>Інформація про каталог</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Createdat)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Createdat)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Parentfolder)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Parentfolder.Name)
-        </dd>
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Name)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Name)</dd>
+        
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Createdat)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Createdat)</dd>
     </dl>
+
     <h4>Вміст каталогу</h4>
     <hr />
     
     <h5>Підкаталоги</h5>
     @if (Model.InverseParentfolder != null && Model.InverseParentfolder.Any())
     {
-        <ul>
-            @foreach (var subfolder in Model.InverseParentfolder)
-            {
-                <li>
-                    <a asp-action="Details" asp-route-id="@subfolder.Id">@subfolder.Name</a>
-                </li>
-            }
-        </ul>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Назва підкаталогу</th>
+                    <th>Дата створення</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var subfolder in Model.InverseParentfolder)
+                {
+                    <tr>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@subfolder.Id">@subfolder.Name</a>
+                        </td>
+                        <td>@subfolder.Createdat</td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@subfolder.Id">Редагувати</a> |
+                            <a asp-action="Delete" asp-route-id="@subfolder.Id">Видалити</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     }
     else
     {
         <p>Немає підкаталогів.</p>
     }
 
+    <br />
     <h5>Файли</h5>
     @if (Model.Files != null && Model.Files.Any())
     {
-        <ul>
-            @foreach (var file in Model.Files)
-            {
-                <li>
-                    <a asp-controller="Files" asp-action="Details" asp-route-id="@file.Id">@file.Name</a>
-                </li>
-            }
-        </ul>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Назва файлу</th>
+                    <th>Опис</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var file in Model.Files)
+                {
+                    <tr>
+                        <td>
+                            <a asp-controller="Files" asp-action="Details" asp-route-id="@file.Id">@file.Name</a>
+                        </td>
+                        <td>@file.Description</td>
+                        <td>
+                            <a asp-controller="Files" asp-action="Edit" asp-route-id="@file.Id">Редагувати</a> |
+                            <a asp-controller="Files" asp-action="Delete" asp-route-id="@file.Id">Видалити</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     }
     else
     {
         <p>Немає файлів у цьому каталозі.</p>
     }
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Редагувати поточний каталог</a> |
+    <a asp-action="Index">Повернутися до списку</a>
 </div>

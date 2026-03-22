@@ -25,6 +25,8 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
+app.MapControllers();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Folders}/{action=Index}/{id?}")

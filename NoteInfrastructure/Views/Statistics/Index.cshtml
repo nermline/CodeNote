@@ -1,0 +1,295 @@
+@{
+    ViewData["Title"] = "Статистика";
+}
+
+<div class="page-container">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-bar-chart-line"></i> Статистика
+        </h1>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Chart 1: Files by Month -->
+        <div class="col-12 col-xl-6">
+            <div class="card">
+                <div class="card-header-custom">
+                    <h6><i class="bi bi-calendar3"></i> Файли за місяцями</h6>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="filesByMonthChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 2: Files by Folder -->
+        <div class="col-12 col-xl-6">
+            <div class="card">
+                <div class="card-header-custom">
+                    <h6><i class="bi bi-folder2-open"></i> Файли за папками</h6>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="filesByFolderChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 3: Tags by Usage -->
+        <div class="col-12 col-xl-6">
+            <div class="card">
+                <div class="card-header-custom">
+                    <h6><i class="bi bi-tags"></i> Популярність тегів</h6>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="tagsByUsageChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 4: Versions by Month -->
+        <div class="col-12 col-xl-6">
+            <div class="card">
+                <div class="card-header-custom">
+                    <h6><i class="bi bi-git"></i> Версії за місяцями</h6>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="versionsByMonthChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 5: Top Files by Versions -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header-custom">
+                    <h6><i class="bi bi-trophy"></i> Топ-10 файлів за кількістю версій</h6>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="topFilesByVersionsChart" class="chart-container chart-container--wide"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .chart-container {
+        width: 100%;
+        min-height: 340px;
+        background: transparent;
+    }
+    .chart-container--wide {
+        min-height: 380px;
+    }
+    /* Google Charts renders an SVG/table inside — make its wrapper transparent */
+    .chart-container > div,
+    .chart-container > div > div {
+        background: transparent !important;
+    }
+</style>
+
+@section Scripts {
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load('current', { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(drawCharts);
+
+    /* ── Shared dark-theme options ──────────────────────────────── */
+    const BG          = '#161b22';   /* --bg-surface  */
+    const BG_ELEVATED = '#1c2128';   /* --bg-elevated */
+    const BORDER      = '#30363d';   /* --border      */
+    const TEXT        = '#e6edf3';   /* --text-primary */
+    const TEXT_SEC    = '#8b949e';   /* --text-secondary */
+    const TEXT_MUTED  = '#6e7681';   /* --text-muted  */
+
+    const ACCENT  = '#58a6ff';   /* blue  */
+    const GREEN   = '#3fb950';
+    const YELLOW  = '#d29922';
+    const RED     = '#f85149';
+    const PURPLE  = '#bc8cff';
+
+    /* Palette for multi-color charts (pie, etc.) */
+    const PALETTE = [ACCENT, GREEN, PURPLE, YELLOW, RED,
+                     '#79c0ff', '#56d364', '#d2a8ff', '#e3b341', '#ffa198'];
+
+    function baseOptions(extra = {}) {
+        return Object.assign({
+            backgroundColor:      { fill: BG },
+            chartArea:            { backgroundColor: BG },
+            titleTextStyle:       { color: TEXT_SEC, fontSize: 12, bold: false },
+            legendTextStyle:      { color: TEXT_SEC, fontSize: 11 },
+            hAxis: {
+                textStyle:         { color: TEXT_MUTED, fontSize: 11 },
+                titleTextStyle:    { color: TEXT_SEC,  fontSize: 11 },
+                gridlines:         { color: BORDER },
+                minorGridlines:    { color: 'transparent' },
+                baselineColor:     BORDER,
+            },
+            vAxis: {
+                textStyle:         { color: TEXT_MUTED, fontSize: 11 },
+                titleTextStyle:    { color: TEXT_SEC,  fontSize: 11 },
+                gridlines:         { color: BORDER },
+                minorGridlines:    { color: 'transparent' },
+                baselineColor:     BORDER,
+                minValue: 0,
+            },
+            tooltip: {
+                textStyle:  { color: TEXT,    fontSize: 12 },
+                showColorCode: true,
+            },
+            animation: { startup: true, duration: 600, easing: 'out' },
+        }, extra);
+    }
+
+    function showEmpty(id) {
+        document.getElementById(id).innerHTML =
+            '<div class="empty-state" style="min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;">' +
+            '<i class="bi bi-database-x" style="font-size:2.5rem;opacity:.3;margin-bottom:.75rem;display:block;"></i>' +
+            '<span style="color:var(--text-muted);font-size:.875rem;">Даних поки немає</span>' +
+            '</div>';
+    }
+
+    function drawCharts() {
+        drawFilesByMonth();
+        drawFilesByFolder();
+        drawTagsByUsage();
+        drawVersionsByMonth();
+        drawTopFilesByVersions();
+    }
+
+    /* ── 1. Files by Month — Column ─────────────────────────────── */
+    function drawFilesByMonth() {
+        fetch('/api/charts/filesByMonth').then(r => r.json()).then(data => {
+            if (!data.length) { showEmpty('filesByMonthChart'); return; }
+
+            const table = new google.visualization.DataTable();
+            table.addColumn('string', 'Місяць');
+            table.addColumn('number', 'Файлів');
+            data.forEach(d => table.addRow([d.month, d.count]));
+
+            const chart = new google.visualization.ColumnChart(
+                document.getElementById('filesByMonthChart'));
+            chart.draw(table, baseOptions({
+                colors:   [ACCENT],
+                legend:   { position: 'none' },
+                chartArea: { width: '80%', height: '68%', backgroundColor: BG },
+                hAxis: { slantedText: true, slantedTextAngle: 45,
+                         textStyle: { color: TEXT_MUTED, fontSize: 11 },
+                         gridlines: { color: BORDER }, baselineColor: BORDER,
+                         titleTextStyle: { color: TEXT_SEC, fontSize: 11 } },
+                bar: { groupWidth: '60%' },
+            }));
+        }).catch(() => showEmpty('filesByMonthChart'));
+    }
+
+    /* ── 2. Files by Folder — Donut Pie ─────────────────────────── */
+    function drawFilesByFolder() {
+        fetch('/api/charts/filesByFolder').then(r => r.json()).then(data => {
+            if (!data.length) { showEmpty('filesByFolderChart'); return; }
+
+            const table = new google.visualization.DataTable();
+            table.addColumn('string', 'Папка');
+            table.addColumn('number', 'Файлів');
+            data.forEach(d => table.addRow([d.folder, d.count]));
+
+            const chart = new google.visualization.PieChart(
+                document.getElementById('filesByFolderChart'));
+            chart.draw(table, baseOptions({
+                colors:    PALETTE,
+                pieHole:   0.45,
+                legend:    { position: 'right', alignment: 'center',
+                             textStyle: { color: TEXT_SEC, fontSize: 11 } },
+                pieSliceBorderColor: BG_ELEVATED,
+                chartArea: { width: '85%', height: '82%', backgroundColor: BG },
+            }));
+        }).catch(() => showEmpty('filesByFolderChart'));
+    }
+
+    /* ── 3. Tags by Usage — Horizontal Bar ──────────────────────── */
+    function drawTagsByUsage() {
+        fetch('/api/charts/tagsByUsage').then(r => r.json()).then(data => {
+            if (!data.length) { showEmpty('tagsByUsageChart'); return; }
+
+            const table = new google.visualization.DataTable();
+            table.addColumn('string', 'Тег');
+            table.addColumn('number', 'Файлів');
+            data.forEach(d => table.addRow([d.tag, d.count]));
+
+            const chart = new google.visualization.BarChart(
+                document.getElementById('tagsByUsageChart'));
+            chart.draw(table, baseOptions({
+                colors:   [PURPLE],
+                legend:   { position: 'none' },
+                chartArea: { width: '68%', height: '78%', backgroundColor: BG },
+                hAxis: { textStyle:      { color: TEXT_MUTED, fontSize: 11 },
+                         titleTextStyle: { color: TEXT_SEC, fontSize: 11 },
+                         gridlines:      { color: BORDER },
+                         baselineColor:  BORDER, minValue: 0 },
+                vAxis: { textStyle: { color: TEXT_SEC, fontSize: 11 } },
+            }));
+        }).catch(() => showEmpty('tagsByUsageChart'));
+    }
+
+    /* ── 4. Versions by Month — Line ────────────────────────────── */
+    function drawVersionsByMonth() {
+        fetch('/api/charts/versionsByMonth').then(r => r.json()).then(data => {
+            if (!data.length) { showEmpty('versionsByMonthChart'); return; }
+
+            const table = new google.visualization.DataTable();
+            table.addColumn('string', 'Місяць');
+            table.addColumn('number', 'Версій');
+            data.forEach(d => table.addRow([d.month, d.count]));
+
+            const chart = new google.visualization.LineChart(
+                document.getElementById('versionsByMonthChart'));
+            chart.draw(table, baseOptions({
+                colors:    [GREEN],
+                legend:    { position: 'none' },
+                lineWidth: 3,
+                pointSize: 7,
+                pointShape: 'circle',
+                chartArea: { width: '80%', height: '68%', backgroundColor: BG },
+                hAxis: { slantedText: true, slantedTextAngle: 45,
+                         textStyle: { color: TEXT_MUTED, fontSize: 11 },
+                         gridlines: { color: BORDER }, baselineColor: BORDER,
+                         titleTextStyle: { color: TEXT_SEC, fontSize: 11 } },
+            }));
+        }).catch(() => showEmpty('versionsByMonthChart'));
+    }
+
+    /* ── 5. Top Files by Versions — Column ──────────────────────── */
+    function drawTopFilesByVersions() {
+        fetch('/api/charts/topFilesByVersions').then(r => r.json()).then(data => {
+            if (!data.length) { showEmpty('topFilesByVersionsChart'); return; }
+
+            const table = new google.visualization.DataTable();
+            table.addColumn('string', 'Файл');
+            table.addColumn('number', 'Версій');
+            data.forEach(d => table.addRow([d.fileName, d.versions]));
+
+            const chart = new google.visualization.ColumnChart(
+                document.getElementById('topFilesByVersionsChart'));
+            chart.draw(table, baseOptions({
+                colors:   [YELLOW],
+                legend:   { position: 'none' },
+                chartArea: { width: '88%', height: '66%', backgroundColor: BG },
+                hAxis: { slantedText: true, slantedTextAngle: 30,
+                         textStyle: { color: TEXT_MUTED, fontSize: 11 },
+                         gridlines: { color: BORDER }, baselineColor: BORDER,
+                         titleTextStyle: { color: TEXT_SEC, fontSize: 11 } },
+                bar: { groupWidth: '55%' },
+            }));
+        }).catch(() => showEmpty('topFilesByVersionsChart'));
+    }
+
+    /* Перемальовування при ресайзі */
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(drawCharts, 280);
+    });
+</script>
+}

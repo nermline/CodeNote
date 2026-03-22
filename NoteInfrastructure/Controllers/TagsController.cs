@@ -57,6 +57,12 @@ namespace NoteInfrastructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Id")] Tag tag)
         {
+            bool exists = _context.Tags.Any(t => t.Name == tag.Name);
+            if (exists)
+            {
+                ModelState.AddModelError("Name", "Тег з таким іменем вже існує.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(tag);
@@ -92,6 +98,12 @@ namespace NoteInfrastructure.Controllers
             if (id != tag.Id)
             {
                 return NotFound();
+            }
+
+            bool exists = _context.Tags.Any(t => t.Name == tag.Name && t.Id != tag.Id);
+            if (exists)
+            {
+                ModelState.AddModelError("Name", "Інший тег з таким іменем вже існує.");
             }
 
             if (ModelState.IsValid)

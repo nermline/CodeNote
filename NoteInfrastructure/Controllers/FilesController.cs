@@ -67,6 +67,12 @@ namespace NoteInfrastructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Description,Folderid,Createdat,Id")] File @file, int[] selectedTags)
         {
+            bool exists = _context.Files.Any(f => f.Name == @file.Name && f.Folderid == @file.Folderid);
+            if (exists)
+            {
+                ModelState.AddModelError("Name", "Файл з таким іменем вже існує в цій папці.");
+            }
+
             if (ModelState.IsValid)
             {
                 if (selectedTags != null && selectedTags.Length > 0)
@@ -109,6 +115,12 @@ namespace NoteInfrastructure.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("Name,Description,Folderid,Createdat,Id")] File @file, int[] selectedTags)
         {
             if (id != @file.Id) return NotFound();
+
+            bool exists = _context.Files.Any(f => f.Name == @file.Name && f.Folderid == @file.Folderid);
+            if (exists)
+            {
+                ModelState.AddModelError("Name", "Файл з таким іменем вже існує в цій папці.");
+            }
 
             if (ModelState.IsValid)
             {

@@ -25,10 +25,6 @@ public partial class NotedbContext : DbContext
 
     public virtual DbSet<Tag> Tags { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=localhost;Database=notedb;Username=nermline;Password=KolKa84652kn16");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<File>(entity =>
@@ -36,6 +32,10 @@ public partial class NotedbContext : DbContext
             entity.HasKey(e => e.Id).HasName("files_pkey");
 
             entity.ToTable("files");
+            
+            entity.HasIndex(e => new { e.Name, e.Folderid })
+              .IsUnique()
+              .HasDatabaseName("IX_Files_Name_Folderid");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Createdat)
@@ -96,6 +96,10 @@ public partial class NotedbContext : DbContext
             entity.HasKey(e => e.Id).HasName("folders_pkey");
 
             entity.ToTable("folders");
+
+            entity.HasIndex(e => new { e.Name, e.Parentfolderid })
+              .IsUnique()
+              .HasDatabaseName("IX_Folders_Name_Parentfolderid");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Createdat)

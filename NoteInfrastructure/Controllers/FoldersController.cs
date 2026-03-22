@@ -64,6 +64,12 @@ namespace NoteInfrastructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Parentfolderid,Createdat,Id")] Folder folder)
         {
+            bool exists = _context.Folders.Any(f => f.Name == folder.Name && f.Parentfolderid == folder.Parentfolderid);
+            if (exists)
+            {
+                ModelState.AddModelError("Name", "Папка з таким іменем вже існує в цьому каталозі.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(folder);
@@ -105,6 +111,12 @@ namespace NoteInfrastructure.Controllers
             if (id != folder.Id)
             {
                 return NotFound();
+            }
+
+            bool exists = _context.Folders.Any(f => f.Name == folder.Name && f.Parentfolderid == folder.Parentfolderid);
+            if (exists)
+            {
+                ModelState.AddModelError("Name", "Папка з таким іменем вже існує в цьому каталозі.");
             }
 
             if (ModelState.IsValid)

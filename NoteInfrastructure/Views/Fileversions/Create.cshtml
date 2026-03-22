@@ -12,7 +12,7 @@
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-md-9 col-lg-7">
+    <div class="col-md-10 col-lg-8">
         <div class="form-card">
             <div class="form-card-header">
                 <h5>
@@ -26,30 +26,52 @@
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-8">
-                            <label asp-for="Fileid" class="form-label">Файл</label>
+                            <label asp-for="Fileid" class="form-label">
+                                <i class="bi bi-file-earmark-code me-1" style="color:var(--accent)"></i>Файл
+                            </label>
                             <select asp-for="Fileid" class="form-select" asp-items="ViewBag.Fileid"></select>
                         </div>
                         <div class="col-md-4">
-                            <label asp-for="Versionnumber" class="form-label">Номер версії</label>
+                            <label asp-for="Versionnumber" class="form-label">
+                                <i class="bi bi-bookmark me-1" style="color:var(--green)"></i>Номер версії
+                            </label>
                             <div class="input-group">
                                 <span class="input-group-text" style="font-family:var(--font-mono);">v</span>
-                                <input asp-for="Versionnumber" class="form-control" style="font-family:var(--font-mono);" placeholder="1.0.0" />
+                                <input asp-for="Versionnumber" class="form-control" style="font-family:var(--font-mono);" placeholder="1" />
                             </div>
                             <span asp-validation-for="Versionnumber" class="text-danger small mt-1 d-block"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Changelog" class="form-label">Опис змін (Changelog)</label>
-                        <input asp-for="Changelog" class="form-control" placeholder="Короткий опис того, що змінено…" />
+                        <label asp-for="Changelog" class="form-label">
+                            <i class="bi bi-chat-left-text me-1" style="color:var(--purple)"></i>Опис змін (Changelog)
+                        </label>
+                        <input asp-for="Changelog" class="form-control"
+                               placeholder="Короткий опис того, що змінено…" />
                         <span asp-validation-for="Changelog" class="text-danger small mt-1 d-block"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Content" class="form-label">
-                            <i class="bi bi-code-slash me-1" style="color:var(--green)"></i>Вміст файлу
-                        </label>
-                        <textarea asp-for="Content" class="form-control code-area" rows="14" placeholder="// Вставте код або вміст файлу тут…"></textarea>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label mb-0">
+                                <i class="bi bi-code-slash me-1" style="color:var(--green)"></i>Вміст файлу
+                            </label>
+                            <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">
+                                <span id="lineCount">1</span> рядк(ів) · Tab = 4 пробіли
+                            </div>
+                        </div>
+
+                        <div class="ide-editor-wrap">
+                            <div class="ide-line-numbers" id="lineNumbers">1</div>
+                            <textarea asp-for="Content"
+                                      id="ideContent"
+                                      class="ide-textarea"
+                                      spellcheck="false"
+                                      autocorrect="off"
+                                      autocapitalize="off"
+                                      placeholder="// Вставте код або вміст файлу тут…"></textarea>
+                        </div>
                         <span asp-validation-for="Content" class="text-danger small mt-1 d-block"></span>
                     </div>
 
@@ -68,4 +90,51 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+    (function () {
+        const textarea = document.getElementById('ideContent');
+        const lineNumbers = document.getElementById('lineNumbers');
+        const lineCount = document.getElementById('lineCount');
+
+        function updateLineNumbers() {
+            const lines = textarea.value.split('\n').length;
+            lineCount.textContent = lines;
+            let html = '';
+            for (let i = 1; i <= lines; i++) html += i + '\n';
+            lineNumbers.textContent = html;
+        }
+
+        function syncScroll() {
+            lineNumbers.scrollTop = textarea.scrollTop;
+        }
+
+        textarea.addEventListener('keydown', function (e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                const spaces = '    ';
+                if (start === end) {
+                    this.value = this.value.substring(0, start) + spaces + this.value.substring(end);
+                    this.selectionStart = this.selectionEnd = start + 4;
+                } else {
+                    const selected = this.value.substring(start, end);
+                    const lines = selected.split('\n');
+                    if (e.shiftKey) {
+                        const dedented = lines.map(l => l.startsWith('    ') ? l.slice(4) : l).join('\n');
+                        this.value = this.value.substring(0, start) + dedented + this.value.substring(end);
+                    } else {
+                        const indented = lines.map(l => spaces + l).join('\n');
+                        this.value = this.value.substring(0, start) + indented + this.value.substring(end);
+                    }
+                }
+                updateLineNumbers();
+            }
+        });
+
+        textarea.addEventListener('input', updateLineNumbers);
+        textarea.addEventListener('scroll', syncScroll);
+        updateLineNumbers();
+    })();
+    </script>
 }

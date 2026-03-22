@@ -2,21 +2,40 @@
 
 @{
     ViewData["Title"] = Model.Name;
+
+    string BuildFullPath(NoteDomain.Model.Folder? folder, string fileName)
+    {
+        if (folder == null) return "~/" + fileName;
+        var parts = new System.Collections.Generic.List<string>();
+        var cur = folder;
+        while (cur != null) { parts.Insert(0, cur.Name); cur = cur.Parentfolder; }
+        return "~/" + string.Join("/", parts) + "/" + fileName;
+    }
+
+    string fullPath = BuildFullPath(Model.Folder, Model.Name);
 }
 
 <div class="page-header">
     <div class="d-flex align-items-center gap-3 flex-wrap">
-        <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folderid" class="back-btn">
-            <i class="bi bi-arrow-left"></i> @(Model.Folder?.Name ?? "Назад")
-        </a>
+        @if (Model.Folder != null)
+        {
+            <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folderid" class="back-btn">
+                <i class="bi bi-arrow-left"></i> @Model.Folder.Name
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Folders" asp-action="Index" class="back-btn">
+                <i class="bi bi-arrow-left"></i> Каталоги
+            </a>
+        }
         <div class="editor-tab">
             <i class="bi bi-file-earmark-code"></i>
             @Model.Name
             <span class="tab-close ms-1"><i class="bi bi-x"></i></span>
         </div>
         <span class="breadcrumb-path">
-            <i class="bi bi-hdd-network"></i>
-            <span>~/</span>@(Model.Folder?.Name ?? "root")<span>/</span>@Model.Name
+            <i class="bi bi-hdd-network me-1"></i>@fullPath
         </span>
     </div>
     <div class="d-flex gap-2">
@@ -41,8 +60,8 @@
             </div>
 
             <div class="inspector-row">
-                <div class="inspector-label">Розташування</div>
-                <div class="inspector-value">@(Model.Folder?.Name ?? "root")</div>
+                <div class="inspector-label">Повний шлях</div>
+                <div class="inspector-value" style="font-size:0.78rem; word-break:break-all;">@fullPath</div>
             </div>
 
             <div class="inspector-row">
@@ -96,13 +115,13 @@
                     {
                         <div class="commit-item">
                             <div class="d-flex align-items-center gap-3">
-                                <span class="commit-hash">#@version.Id</span>
+                                <span class="commit-hash">v@(version.Versionnumber)</span>
                                 <div>
                                     <div style="font-size:0.875rem; color:var(--text-primary); font-weight:500;">
                                         @(string.IsNullOrEmpty(version.Changelog) ? "Без опису коміту" : version.Changelog)
                                     </div>
                                     <div class="commit-meta">
-                                        v@version.Versionnumber
+                                        <span style="font-family:var(--font-mono); color:var(--text-muted);">#@(version.Id)</span>
                                         @if (version.Createdat.HasValue)
                                         {
                                             <span class="ms-2">· @version.Createdat.Value.ToString("dd.MM.yyyy HH:mm")</span>

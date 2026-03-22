@@ -2,93 +2,139 @@
 
 @{
     ViewData["Title"] = "Редагування — " + Model.Name;
+
+    string BuildFullPath(NoteDomain.Model.Folder? folder, string fileName)
+    {
+        if (folder == null) return "~/" + fileName;
+        var parts = new System.Collections.Generic.List<string>();
+        var cur = folder;
+        while (cur != null) { parts.Insert(0, cur.Name); cur = cur.Parentfolder; }
+        return "~/" + string.Join("/", parts) + "/" + fileName;
+    }
+
+    string fullPath = BuildFullPath(Model.Folder, Model.Name);
 }
 
 <div class="page-header">
     <div class="d-flex align-items-center gap-3">
-        <a asp-action="Index" class="back-btn"><i class="bi bi-arrow-left"></i> Файли</a>
+        @if (Model.Folder != null)
+        {
+            <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folderid" class="back-btn">
+                <i class="bi bi-arrow-left"></i> @Model.Folder.Name
+            </a>
+        }
+        else
+        {
+            <a asp-action="Index" class="back-btn"><i class="bi bi-arrow-left"></i> Файли</a>
+        }
         <div class="editor-tab">
-            <i class="bi bi-gear" style="color:var(--text-muted)"></i>
-            settings › @Model.Name
+            <i class="bi bi-pencil" style="color:var(--yellow)"></i>
+            редагування › @Model.Name
         </div>
+        <span class="breadcrumb-path">
+            <i class="bi bi-hdd-network me-1"></i>@fullPath
+        </span>
     </div>
 </div>
 
 <div class="editor-pane">
-    <div class="editor-header">
-        <span style="font-family:var(--font-mono); font-size:0.8125rem; color:var(--text-muted);">
-            <i class="bi bi-pencil-square me-1" style="color:var(--yellow)"></i>
-            Редагування файлу
-        </span>
-        <span class="badge badge-folder">@(Model.Folder?.Name ?? "root")</span>
-    </div>
-
     <form asp-action="Edit" class="p-4">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
         <input type="hidden" asp-for="Id" />
+        
+        <input type="hidden" asp-for="Folderid" />
 
         <div class="row g-4">
             <div class="col-md-6">
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label">
-                        <i class="bi bi-quote me-1" style="color:var(--accent)"></i>"filename":
+
+                <div class="mb-4">
+                    <label class="form-label">
+                        <i class="bi bi-signpost-2 me-1" style="color:var(--accent)"></i>Розташування
                     </label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-file-earmark-code"></i></span>
-                        <input asp-for="Name" class="form-control" style="font-family:var(--font-mono);" />
+                    <div class="path-display">
+                        <i class="bi bi-hdd-network me-1" style="color:var(--text-muted)"></i>@fullPath
                     </div>
+                    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;">
+                        // Переміщення файлів між папками не підтримується
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Name" class="form-label">
+                        <i class="bi bi-file-earmark-code me-1" style="color:var(--accent)"></i>Ім'я файлу
+                    </label>
+                    <input asp-for="Name" class="form-control" style="font-family:var(--font-mono);" />
                     <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Folderid" class="form-label">
-                        <i class="bi bi-folder2 me-1" style="color:var(--yellow)"></i>"directory_id":
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-folder2"></i></span>
-                        <select asp-for="Folderid" class="form-select" asp-items="ViewBag.Folderid"></select>
-                    </div>
-                    <span asp-validation-for="Folderid" class="text-danger small mt-1 d-block"></span>
-                </div>
-
-                <div class="mb-3">
+                <div class="mb-4">
                     <label asp-for="Createdat" class="form-label">
-                        <i class="bi bi-clock me-1" style="color:var(--text-muted)"></i>"created_at":
+                        <i class="bi bi-clock me-1" style="color:var(--text-muted)"></i>Дата створення
                     </label>
                     <input asp-for="Createdat" class="form-control" readonly style="font-family:var(--font-mono);" />
                 </div>
+
             </div>
 
             <div class="col-md-6 d-flex flex-column">
-                <div class="mb-3 flex-grow-1 d-flex flex-column">
+                <div class="mb-4 flex-grow-1 d-flex flex-column">
                     <label asp-for="Description" class="form-label">
-                        <i class="bi bi-text-paragraph me-1" style="color:var(--green)"></i>"description":
+                        <i class="bi bi-text-paragraph me-1" style="color:var(--green)"></i>Опис
                     </label>
-                    <textarea asp-for="Description" class="form-control flex-grow-1" style="min-height:120px; resize:none; font-family:var(--font-mono); font-size:0.875rem;"></textarea>
+                    <textarea asp-for="Description" class="form-control flex-grow-1"
+                              style="min-height:120px; resize:none; font-size:0.9rem;"></textarea>
                     <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
                 </div>
             </div>
 
             <div class="col-12">
-                <div class="mb-3">
-                    <label class="form-label">
-                        <i class="bi bi-tags me-1" style="color:var(--purple)"></i>"tags": [
-                    </label>
-                    <select name="selectedTags" class="form-select" asp-items="ViewBag.Tags"
-                            multiple="multiple" style="height:120px;"></select>
-                    <label class="form-label mt-1">]</label>
-                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">
-                        // Утримуйте Ctrl (або Cmd), щоб вибрати декілька тегів
+                <label class="form-label">
+                    <i class="bi bi-tags me-1" style="color:var(--purple)"></i>Теги
+                </label>
+                @{
+                    var tagItems = ViewBag.Tags as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>;
+                }
+                @if (tagItems != null && tagItems.Any())
+                {
+                    <div class="tag-checkbox-grid">
+                        @foreach (var tag in tagItems)
+                        {
+                            <label class="tag-checkbox-item @(tag.Selected ? "selected" : "")">
+                                <input type="checkbox"
+                                       name="selectedTags"
+                                       value="@tag.Value"
+                                       @(tag.Selected ? "checked" : "")
+                                       class="tag-checkbox-input" />
+                                <i class="bi bi-tag-fill"></i>
+                                <span>@tag.Text</span>
+                            </label>
+                        }
                     </div>
-                </div>
+                }
+                else
+                {
+                    <div style="color:var(--text-muted); font-size:0.875rem; padding:0.75rem 0;">
+                        // Тегів ще не створено. <a asp-controller="Tags" asp-action="Create" style="color:var(--accent);">Створити тег</a>
+                    </div>
+                }
             </div>
 
             <div class="col-12">
                 <hr class="divider" />
                 <div class="d-flex gap-2 justify-content-end">
-                    <a asp-action="Index" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-lg"></i> Скасувати
-                    </a>
+                    @if (Model.Folder != null)
+                    {
+                        <a asp-controller="Folders" asp-action="Details" asp-route-id="@Model.Folderid"
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i> Скасувати
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i> Скасувати
+                        </a>
+                    }
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-floppy"></i> Зберегти
                     </button>
@@ -100,4 +146,12 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        // Підсвічуємо / знімаємо підсвічування при зміні чекбоксів
+        document.querySelectorAll('.tag-checkbox-input').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                this.closest('.tag-checkbox-item').classList.toggle('selected', this.checked);
+            });
+        });
+    </script>
 }

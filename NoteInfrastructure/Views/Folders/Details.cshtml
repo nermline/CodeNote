@@ -2,25 +2,46 @@
 
 @{
     ViewData["Title"] = Model.Name;
+
+    string BuildFolderPath(NoteDomain.Model.Folder? folder)
+    {
+        if (folder == null) return "~/";
+        var parts = new System.Collections.Generic.List<string>();
+        var cur = folder;
+        while (cur != null) { parts.Insert(0, cur.Name); cur = cur.Parentfolder; }
+        return "~/" + string.Join("/", parts) + "/";
+    }
+
+    string folderPath = BuildFolderPath(Model);
 }
 
 <div class="page-header">
-    <div class="d-flex align-items-center gap-3">
-        <a asp-action="Index" class="back-btn"><i class="bi bi-arrow-left"></i> Каталоги</a>
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        @if (Model.Parentfolder != null)
+        {
+            <a asp-action="Details" asp-route-id="@Model.Parentfolderid" class="back-btn">
+                <i class="bi bi-arrow-left"></i> @Model.Parentfolder.Name
+            </a>
+        }
+        else
+        {
+            <a asp-action="Index" class="back-btn">
+                <i class="bi bi-arrow-left"></i> Каталоги
+            </a>
+        }
         <h1 class="page-title">
             <i class="bi bi-folder-fill" style="color:var(--yellow)"></i>
             @Model.Name
         </h1>
-        @if (Model.Createdat.HasValue)
-        {
-            <span style="font-size:0.8rem; color:var(--text-muted); font-family:var(--font-mono);">@Model.Createdat.Value.ToString("dd.MM.yyyy")</span>
-        }
+        <span class="breadcrumb-path">
+            <i class="bi bi-hdd-network me-1"></i>@folderPath
+        </span>
     </div>
     <div class="d-flex gap-2">
         <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">
             <i class="bi bi-pencil"></i> Редагувати
         </a>
-        <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger">
+        <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger btn-icon" title="Видалити">
             <i class="bi bi-trash"></i>
         </a>
     </div>
@@ -43,7 +64,8 @@
                     @foreach (var subfolder in Model.InverseParentfolder)
                     {
                         <div style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1.1rem; border-bottom:1px solid var(--border-muted);">
-                            <a asp-action="Details" asp-route-id="@subfolder.Id" class="d-flex align-items-center gap-2 text-decoration-none" style="color:var(--text-primary);">
+                            <a asp-action="Details" asp-route-id="@subfolder.Id"
+                               class="d-flex align-items-center gap-2 text-decoration-none" style="color:var(--text-primary);">
                                 <i class="bi bi-folder-fill" style="color:var(--yellow);"></i>
                                 <span style="font-size:0.9rem;">@subfolder.Name</span>
                             </a>
@@ -104,6 +126,7 @@
                                     </td>
                                     <td class="text-end pe-3">
                                         <div class="d-flex gap-1 justify-content-end">
+                                            <a asp-controller="Files" asp-action="Details" asp-route-id="@file.Id" class="btn btn-sm btn-outline-secondary btn-icon" title="Деталі"><i class="bi bi-eye"></i></a>
                                             <a asp-controller="Files" asp-action="Edit" asp-route-id="@file.Id" class="btn btn-sm btn-warning btn-icon" title="Редагувати"><i class="bi bi-pencil"></i></a>
                                             <a asp-controller="Files" asp-action="Delete" asp-route-id="@file.Id" class="btn btn-sm btn-danger btn-icon" title="Видалити"><i class="bi bi-trash"></i></a>
                                         </div>

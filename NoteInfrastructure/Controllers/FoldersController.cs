@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using NoteDomain.Model;
 using NoteInfrastructure;
+using NoteInfrastructure.Helpers;
 
 namespace NoteInfrastructure.Controllers
 {
     public class FoldersController : Controller
     {
         private readonly NotedbContext _context;
+        private const int PageSize = 24;
 
         public FoldersController(NotedbContext context)
         {
@@ -31,12 +33,21 @@ namespace NoteInfrastructure.Controllers
             }
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, int page = 1)
         {
-            var rootFolders = _context.Folders
+            ViewData["Search"] = search;
+
+            var query = _context.Folders
                 .Include(f => f.Parentfolder)
                 .Where(f => f.Parentfolderid == null);
-            return View(await rootFolders.ToListAsync());
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(f => f.Name.ToLower().Contains(search.ToLower()));
+
+            query = query.OrderBy(f => f.Name);
+
+            var result = await PaginatedList<Folder>.CreateAsync(query, page, PageSize, search);
+            return View(result);
         }
 
         public async Task<IActionResult> Details(int? id)

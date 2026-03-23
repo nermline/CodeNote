@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using NoteDomain.Model;
 using NoteInfrastructure;
+using NoteInfrastructure.Helpers;
 
 namespace NoteInfrastructure.Controllers
 {
     public class FileversionsController : Controller
     {
         private readonly NotedbContext _context;
+        private const int PageSize = 15;
 
         public FileversionsController(NotedbContext context)
         {
@@ -31,10 +33,24 @@ namespace NoteInfrastructure.Controllers
             }
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, int page = 1)
         {
-            var notedbContext = _context.Fileversions.Include(f => f.File);
-            return View(await notedbContext.ToListAsync());
+            ViewData["Search"] = search;
+
+            var query = _context.Fileversions
+                .Include(f => f.File)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(fv =>
+                    (fv.Versionnumber != null && fv.Versionnumber.ToLower().Contains(search.ToLower())) ||
+                    (fv.Changelog != null && fv.Changelog.ToLower().Contains(search.ToLower())) ||
+                    (fv.File != null && fv.File.Name.ToLower().Contains(search.ToLower())));
+
+            query = query.OrderByDescending(f => f.Createdat);
+
+            var result = await PaginatedList<Fileversion>.CreateAsync(query, page, PageSize, search);
+            return View(result);
         }
 
         public async Task<IActionResult> Details(int? id)

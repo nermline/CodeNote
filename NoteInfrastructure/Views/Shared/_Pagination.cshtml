@@ -1,0 +1,73 @@
+@using NoteInfrastructure.Helpers
+@model dynamic
+
+@{
+    // Expected: ViewData["PaginatedList"] = paginatedList, ViewData["Action"] = "Index"
+    var list = ViewData["PaginatedList"] as dynamic;
+    if (list == null) return;
+
+    int pageIndex  = (int)list.PageIndex;
+    int totalPages = (int)list.TotalPages;
+    int totalCount = (int)list.TotalCount;
+    int pageSize   = (int)list.PageSize;
+    string? search = list.SearchQuery as string;
+    string action  = ViewData["Action"]?.ToString() ?? "Index";
+    string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+}
+
+@if (totalCount > 0)
+{
+    <div class="pagination-bar">
+        <span class="pagination-info">
+            <i class="bi bi-list-ul me-1"></i>
+            Показано <strong>@((pageIndex-1)*pageSize + 1)–@(Math.Min(pageIndex*pageSize, totalCount))</strong>
+            з <strong>@totalCount</strong>
+        </span>
+
+        @if (totalPages > 1)
+        {
+            <nav class="pagination-nav" aria-label="Сторінки">
+                <a class="page-btn @(!list.HasPreviousPage ? "disabled" : "")"
+                   asp-controller="@controller" asp-action="@action"
+                   asp-route-page="@(pageIndex - 1)" asp-route-search="@search"
+                   title="Попередня">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+
+                @if (pageIndex > 3)
+                {
+                    <a class="page-btn" asp-controller="@controller" asp-action="@action"
+                       asp-route-page="1" asp-route-search="@search">1</a>
+                    if (pageIndex > 4)
+                    {
+                        <span class="page-ellipsis">…</span>
+                    }
+                }
+
+                @foreach (var p in Enumerable.Range(Math.Max(1, pageIndex - 2), Math.Min(5, totalPages - Math.Max(0, pageIndex - 3))))
+                {
+                    <a class="page-btn @(p == pageIndex ? "active" : "")"
+                       asp-controller="@controller" asp-action="@action"
+                       asp-route-page="@p" asp-route-search="@search">@p</a>
+                }
+
+                @if (pageIndex < totalPages - 2)
+                {
+                    if (pageIndex < totalPages - 3)
+                    {
+                        <span class="page-ellipsis">…</span>
+                    }
+                    <a class="page-btn" asp-controller="@controller" asp-action="@action"
+                       asp-route-page="@totalPages" asp-route-search="@search">@totalPages</a>
+                }
+
+                <a class="page-btn @(!list.HasNextPage ? "disabled" : "")"
+                   asp-controller="@controller" asp-action="@action"
+                   asp-route-page="@(pageIndex + 1)" asp-route-search="@search"
+                   title="Наступна">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </nav>
+        }
+    </div>
+}

@@ -1,7 +1,11 @@
-@model IEnumerable<NoteDomain.Model.Fileversion>
+@using NoteInfrastructure.Helpers
+@model PaginatedList<NoteDomain.Model.Fileversion>
 
 @{
     ViewData["Title"] = "Версії файлів";
+    ViewData["PaginatedList"] = Model;
+    ViewData["Action"] = "Index";
+    string? search = ViewData["Search"] as string;
 }
 
 <div class="page-header">
@@ -12,6 +16,24 @@
     <a asp-action="Create" class="btn btn-outline-success">
         <i class="bi bi-plus-lg"></i> Новий коміт
     </a>
+</div>
+
+<div class="list-search-bar mb-3">
+    <form asp-action="Index" method="get" class="d-flex gap-2">
+        <div class="search-input-wrap flex-grow-1">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" name="search" value="@search"
+                   class="form-control search-input"
+                   placeholder="Пошук за версією, changelog або файлом…" autocomplete="off" />
+            @if (!string.IsNullOrWhiteSpace(search))
+            {
+                <a asp-action="Index" class="search-clear" title="Скинути"><i class="bi bi-x"></i></a>
+            }
+        </div>
+        <button type="submit" class="btn btn-outline-secondary">
+            <i class="bi bi-funnel"></i> Фільтр
+        </button>
+    </form>
 </div>
 
 @if (Model.Any())
@@ -71,6 +93,18 @@
                 </tbody>
             </table>
         </div>
+        @await Html.PartialAsync("_Pagination")
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(search))
+{
+    <div class="card">
+        <div class="empty-state">
+            <i class="bi bi-search"></i>
+            <h5>Нічого не знайдено</h5>
+            <p>За запитом «@search» версій не знайдено.</p>
+            <a asp-action="Index" class="btn btn-outline-secondary mt-2"><i class="bi bi-x"></i> Скинути фільтр</a>
+        </div>
     </div>
 }
 else
@@ -80,9 +114,7 @@ else
             <i class="bi bi-journal-code"></i>
             <h5>Версій ще немає</h5>
             <p>Зробіть перший коміт, щоб почати відстежувати зміни файлів.</p>
-            <a asp-action="Create" class="btn btn-outline-success mt-2">
-                <i class="bi bi-plus-lg"></i> Перший коміт
-            </a>
+            <a asp-action="Create" class="btn btn-outline-success mt-2"><i class="bi bi-plus-lg"></i> Перший коміт</a>
         </div>
     </div>
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using NoteDomain.Model;
 using NoteInfrastructure;
+using NoteInfrastructure.Helpers;
 
 using File = NoteDomain.Model.File;
 using Folder = NoteDomain.Model.Folder;
@@ -16,6 +17,7 @@ namespace NoteInfrastructure.Controllers
     public class FilesController : Controller
     {
         private readonly NotedbContext _context;
+        private const int PageSize = 15;
 
         public FilesController(NotedbContext context)
         {
@@ -34,12 +36,22 @@ namespace NoteInfrastructure.Controllers
             }
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, int page = 1)
         {
-            var notedbContext = _context.Files
+            ViewData["Search"] = search;
+
+            var query = _context.Files
                 .Include(f => f.Folder)
-                .Include(f => f.Tags);
-            return View(await notedbContext.ToListAsync());
+                .Include(f => f.Tags)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(f => f.Name.ToLower().Contains(search.ToLower()));
+
+            query = query.OrderBy(f => f.Name);
+
+            var result = await PaginatedList<File>.CreateAsync(query, page, PageSize, search);
+            return View(result);
         }
 
         public async Task<IActionResult> Details(int? id)

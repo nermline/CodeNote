@@ -49,7 +49,7 @@
         <span class="badge badge-version">v@(Model.Versionnumber)</span>
     </div>
 
-    <form asp-action="Edit" class="p-4">
+    <form asp-action="Edit" class="p-4" id="editForm">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
         <input type="hidden" asp-for="Id" />
 
@@ -91,24 +91,40 @@
         <div class="mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <label class="form-label mb-0">
-                    <i class="bi bi-code-slash me-1" style="color:var(--green)"></i>Вміст файлу
+                    <i class="bi bi-pencil-square me-1" style="color:var(--accent)"></i>Вміст файлу
                 </label>
-                <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">
-                    <span id="lineCount">1</span> рядк(ів) · Tab = 4 пробіли
+                <div class="wysiwyg-toolbar" id="wysiwygToolbar">
+                    <button type="button" class="wysiwyg-btn" data-cmd="bold" title="Жирний"><i class="bi bi-type-bold"></i></button>
+                    <button type="button" class="wysiwyg-btn" data-cmd="italic" title="Курсив"><i class="bi bi-type-italic"></i></button>
+                    <button type="button" class="wysiwyg-btn" data-cmd="underline" title="Підкреслений"><i class="bi bi-type-underline"></i></button>
+                    <button type="button" class="wysiwyg-btn" data-cmd="strikeThrough" title="Закреслений"><i class="bi bi-type-strikethrough"></i></button>
+                    <div class="wysiwyg-divider"></div>
+                    <button type="button" class="wysiwyg-btn" data-cmd="insertUnorderedList" title="Список"><i class="bi bi-list-ul"></i></button>
+                    <button type="button" class="wysiwyg-btn" data-cmd="insertOrderedList" title="Нумерований список"><i class="bi bi-list-ol"></i></button>
+                    <div class="wysiwyg-divider"></div>
+                    <button type="button" class="wysiwyg-btn" data-cmd="justifyLeft" title="Ліво"><i class="bi bi-text-left"></i></button>
+                    <button type="button" class="wysiwyg-btn" data-cmd="justifyCenter" title="Центр"><i class="bi bi-text-center"></i></button>
+                    <button type="button" class="wysiwyg-btn" data-cmd="justifyRight" title="Право"><i class="bi bi-text-right"></i></button>
+                    <div class="wysiwyg-divider"></div>
+                    <button type="button" class="wysiwyg-btn" data-cmd="formatBlock" data-val="h2" title="Заголовок">H2</button>
+                    <button type="button" class="wysiwyg-btn" data-cmd="formatBlock" data-val="h3" title="Підзаголовок">H3</button>
+                    <button type="button" class="wysiwyg-btn" data-cmd="formatBlock" data-val="p" title="Параграф"><i class="bi bi-paragraph"></i></button>
+                    <div class="wysiwyg-divider"></div>
+                    <button type="button" class="wysiwyg-btn" id="insertLinkBtn" title="Вставити посилання"><i class="bi bi-link-45deg"></i></button>
+                    <button type="button" class="wysiwyg-btn" data-cmd="removeFormat" title="Скинути форматування"><i class="bi bi-eraser"></i></button>
+                    <div class="wysiwyg-divider"></div>
+                    <button type="button" class="wysiwyg-btn" id="undoBtn" title="Відміна"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    <button type="button" class="wysiwyg-btn" id="redoBtn" title="Повтор"><i class="bi bi-arrow-clockwise"></i></button>
                 </div>
             </div>
 
-            <div class="ide-editor-wrap">
-                <div class="ide-line-numbers" id="lineNumbers">1</div>
-                <textarea asp-for="Content"
-                          id="ideContent"
-                          class="ide-textarea"
-                          spellcheck="false"
-                          autocorrect="off"
-                          autocapitalize="off"
-                          placeholder="// Вставте або введіть код тут…"></textarea>
-            </div>
+            <div class="wysiwyg-editor" id="wysiwygEditor" contenteditable="true"
+                 data-placeholder="Введіть або вставте текст тут…"></div>
+            <textarea asp-for="Content" id="contentHidden" class="d-none"></textarea>
             <span asp-validation-for="Content" class="text-danger small mt-1 d-block"></span>
+            <div class="wysiwyg-footer">
+                <span id="charCount" style="color:var(--text-muted); font-size:0.75rem; font-family:var(--font-mono);">0 символів</span>
+            </div>
         </div>
 
         <hr class="divider" />
@@ -122,7 +138,7 @@
             {
                 <a asp-action="Index" class="btn btn-outline-secondary">Скасувати</a>
             }
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
                 <i class="bi bi-floppy"></i> Зберегти
             </button>
         </div>
@@ -133,49 +149,73 @@
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
     (function () {
-        const textarea = document.getElementById('ideContent');
-        const lineNumbers = document.getElementById('lineNumbers');
-        const lineCount = document.getElementById('lineCount');
+        const editor    = document.getElementById('wysiwygEditor');
+        const hidden    = document.getElementById('contentHidden');
+        const charCount = document.getElementById('charCount');
+        const toolbar   = document.getElementById('wysiwygToolbar');
 
-        function updateLineNumbers() {
-            const lines = textarea.value.split('\n').length;
-            lineCount.textContent = lines;
-            let html = '';
-            for (let i = 1; i <= lines; i++) html += i + '\n';
-            lineNumbers.textContent = html;
+        // Load existing content into the WYSIWYG editor
+        const existingContent = hidden.value.trim();
+        if (existingContent) {
+            editor.innerHTML = existingContent;
         }
 
-        function syncScroll() {
-            lineNumbers.scrollTop = textarea.scrollTop;
-        }
+        // Sync before submit
+        document.getElementById('editForm').addEventListener('submit', () => {
+            hidden.value = editor.innerHTML;
+        });
 
-        textarea.addEventListener('keydown', function (e) {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = this.selectionStart;
-                const end = this.selectionEnd;
-                const spaces = '    ';
-                if (start === end) {
-                    this.value = this.value.substring(0, start) + spaces + this.value.substring(end);
-                    this.selectionStart = this.selectionEnd = start + 4;
-                } else {
-                    const selected = this.value.substring(start, end);
-                    const lines = selected.split('\n');
-                    if (e.shiftKey) {
-                        const dedented = lines.map(l => l.startsWith('    ') ? l.slice(4) : l).join('\n');
-                        this.value = this.value.substring(0, start) + dedented + this.value.substring(end);
-                    } else {
-                        const indented = lines.map(l => spaces + l).join('\n');
-                        this.value = this.value.substring(0, start) + indented + this.value.substring(end);
-                    }
-                }
-                updateLineNumbers();
+        function updateCount() {
+            const text = editor.innerText || '';
+            charCount.textContent = text.length + ' символів';
+        }
+        editor.addEventListener('input', updateCount);
+
+        // Toolbar
+        toolbar.addEventListener('mousedown', function (e) {
+            const btn = e.target.closest('.wysiwyg-btn');
+            if (!btn) return;
+            e.preventDefault();
+            const cmd = btn.dataset.cmd;
+            const val = btn.dataset.val || null;
+            if (cmd) {
+                document.execCommand(cmd, false, val);
+                editor.focus();
+                updateActive();
             }
         });
 
-        textarea.addEventListener('input', updateLineNumbers);
-        textarea.addEventListener('scroll', syncScroll);
-        updateLineNumbers();
+        document.getElementById('insertLinkBtn').addEventListener('click', function () {
+            const url = prompt('Введіть URL:');
+            if (url) {
+                document.execCommand('createLink', false, url);
+                editor.querySelectorAll('a:not([target])').forEach(a => {
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                });
+            }
+            editor.focus();
+        });
+
+        document.getElementById('undoBtn').addEventListener('click', () => { document.execCommand('undo'); editor.focus(); });
+        document.getElementById('redoBtn').addEventListener('click', () => { document.execCommand('redo'); editor.focus(); });
+
+        function updateActive() {
+            toolbar.querySelectorAll('[data-cmd]').forEach(btn => {
+                const cmd = btn.dataset.cmd;
+                if (['bold','italic','underline','strikeThrough',
+                     'insertUnorderedList','insertOrderedList',
+                     'justifyLeft','justifyCenter','justifyRight'].includes(cmd)) {
+                    btn.classList.toggle('active', document.queryCommandState(cmd));
+                }
+            });
+        }
+
+        editor.addEventListener('keyup', updateActive);
+        editor.addEventListener('mouseup', updateActive);
+        editor.addEventListener('focus', updateActive);
+
+        updateCount();
     })();
     </script>
 }

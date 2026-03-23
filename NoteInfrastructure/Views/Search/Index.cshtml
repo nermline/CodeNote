@@ -1,0 +1,262 @@
+@model NoteInfrastructure.Models.SearchResultViewModel
+
+@{
+    ViewData["Title"] = string.IsNullOrWhiteSpace(Model.Query)
+        ? "Глобальний пошук"
+        : $"Пошук: {Model.Query}";
+    bool hasQuery = !string.IsNullOrWhiteSpace(Model.Query);
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="bi bi-search"></i> Глобальний пошук</h1>
+        <div class="breadcrumb-path"><i class="bi bi-hdd-network me-1"></i> root / search /</div>
+    </div>
+</div>
+
+<div class="global-search-wrap mb-4">
+    <form asp-action="Index" method="get">
+        <div class="global-search-box">
+            <i class="bi bi-search global-search-icon"></i>
+            <input type="text" name="q" value="@Model.Query"
+                   class="global-search-input"
+                   placeholder="Пошук по файлах, каталогах, комітах та тегах…"
+                   autofocus autocomplete="off" />
+            @if (hasQuery)
+            {
+                <a asp-action="Index" class="global-search-clear" title="Очистити"><i class="bi bi-x-lg"></i></a>
+            }
+            <button type="submit" class="global-search-btn">
+                <i class="bi bi-arrow-return-left"></i>
+            </button>
+        </div>
+        <div class="search-hint">Пошук виконується по: назвах файлів, папок, номерах версій, changelog та тегах</div>
+    </form>
+</div>
+
+@if (hasQuery)
+{
+    if (Model.TotalCount == 0)
+    {
+        <div class="card">
+            <div class="empty-state">
+                <i class="bi bi-binoculars"></i>
+                <h5>Нічого не знайдено</h5>
+                <p>За запитом «@Model.Query» результатів не знайдено. Спробуйте інший запит.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="search-summary mb-3">
+            <i class="bi bi-check-circle-fill me-2" style="color:var(--green);"></i>
+            Знайдено <strong>@Model.TotalCount</strong> результат(ів) за запитом
+            <span class="search-query-badge">@Model.Query</span>
+        </div>
+
+        <!-- FILES -->
+        @if (Model.Files.Any())
+        {
+            <div class="search-section">
+                <div class="search-section-header">
+                    <i class="bi bi-file-earmark-code" style="color:var(--accent);"></i>
+                    Файли
+                    <span class="search-count-badge">@Model.Files.Count</span>
+                </div>
+                <div class="card">
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <tbody>
+                                @foreach (var f in Model.Files)
+                                {
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="file-icon-wrap"><i class="bi bi-file-earmark-code"></i></div>
+                                                <div>
+                                                    <a asp-controller="Files" asp-action="Details" asp-route-id="@f.Id"
+                                                       class="text-decoration-none fw-medium" style="color:var(--text-primary);">
+                                                        @f.Name
+                                                    </a>
+                                                    @if (f.Folder != null)
+                                                    {
+                                                        <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">
+                                                            <i class="bi bi-folder2 me-1"></i>@f.Folder.Name
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (f.Tags != null && f.Tags.Any())
+                                            {
+                                                foreach (var t in f.Tags.Take(3))
+                                                { <span class="badge badge-tag me-1">@t.Name</span> }
+                                            }
+                                        </td>
+                                        <td style="color:var(--text-muted); font-size:0.8rem; font-family:var(--font-mono);">
+                                            @(f.Createdat.HasValue ? f.Createdat.Value.ToString("dd.MM.yyyy") : "—")
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a asp-controller="Files" asp-action="Details" asp-route-id="@f.Id"
+                                               class="btn btn-sm btn-outline-secondary btn-icon" title="Відкрити">
+                                                <i class="bi bi-arrow-right"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- FOLDERS -->
+        @if (Model.Folders.Any())
+        {
+            <div class="search-section">
+                <div class="search-section-header">
+                    <i class="bi bi-folder-fill" style="color:var(--yellow);"></i>
+                    Каталоги
+                    <span class="search-count-badge">@Model.Folders.Count</span>
+                </div>
+                <div class="search-folders-grid">
+                    @foreach (var folder in Model.Folders)
+                    {
+                        <a asp-controller="Folders" asp-action="Details" asp-route-id="@folder.Id"
+                           class="search-folder-card text-decoration-none">
+                            <i class="bi bi-folder-fill" style="font-size:1.5rem; color:var(--yellow);"></i>
+                            <div class="fw-medium" style="color:var(--text-primary); font-size:0.875rem;">@folder.Name</div>
+                            @if (folder.Createdat.HasValue)
+                            {
+                                <div style="font-size:0.7rem; color:var(--text-muted);">@folder.Createdat.Value.ToString("dd.MM.yyyy")</div>
+                            }
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- COMMITS -->
+        @if (Model.Commits.Any())
+        {
+            <div class="search-section">
+                <div class="search-section-header">
+                    <i class="bi bi-git" style="color:var(--green);"></i>
+                    Коміти
+                    <span class="search-count-badge">@Model.Commits.Count</span>
+                </div>
+                <div class="card">
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <tbody>
+                                @foreach (var c in Model.Commits)
+                                {
+                                    <tr>
+                                        <td class="ps-4" style="width:100px;">
+                                            <span class="badge badge-version">v@(c.Versionnumber)</span>
+                                        </td>
+                                        <td>
+                                            @if (c.File != null)
+                                            {
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <i class="bi bi-file-earmark-code" style="color:var(--accent); font-size:0.85rem;"></i>
+                                                    <span style="font-size:0.875rem;">@c.File.Name</span>
+                                                </div>
+                                            }
+                                        </td>
+                                        <td style="color:var(--text-muted); font-size:0.825rem; max-width:220px;">
+                                            <span class="text-truncate d-block">
+                                                @(string.IsNullOrEmpty(c.Changelog) ? "—" : c.Changelog)
+                                            </span>
+                                        </td>
+                                        <td style="color:var(--text-muted); font-size:0.8rem; font-family:var(--font-mono);">
+                                            @(c.Createdat.HasValue ? c.Createdat.Value.ToString("dd.MM.yyyy HH:mm") : "—")
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a asp-controller="Fileversions" asp-action="Details" asp-route-id="@c.Id"
+                                               class="btn btn-sm btn-outline-secondary btn-icon" title="Відкрити">
+                                                <i class="bi bi-arrow-right"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- TAGS -->
+        @if (Model.Tags.Any())
+        {
+            <div class="search-section">
+                <div class="search-section-header">
+                    <i class="bi bi-tag-fill" style="color:var(--purple);"></i>
+                    Теги
+                    <span class="search-count-badge">@Model.Tags.Count</span>
+                </div>
+                <div class="search-tags-grid">
+                    @foreach (var tag in Model.Tags)
+                    {
+                        <a asp-controller="Tags" asp-action="Details" asp-route-id="@tag.Id"
+                           class="search-tag-card text-decoration-none">
+                            <i class="bi bi-tag-fill" style="color:var(--purple);"></i>
+                            <span class="fw-medium" style="color:var(--text-primary);">@tag.Name</span>
+                            @if (tag.Files != null && tag.Files.Any())
+                            {
+                                <span class="badge badge-folder ms-1">@tag.Files.Count()</span>
+                            }
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    }
+}
+else
+{
+    <div class="search-tips">
+        <div class="search-tips-header"><i class="bi bi-lightbulb me-2" style="color:var(--yellow);"></i>Що можна шукати?</div>
+        <div class="search-tips-grid">
+            <div class="search-tip-item">
+                <div class="search-tip-icon" style="background:rgba(88,166,255,.1); color:var(--accent);">
+                    <i class="bi bi-file-earmark-code"></i>
+                </div>
+                <div>
+                    <div class="fw-medium" style="font-size:0.875rem;">Файли</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Пошук за назвою файлу</div>
+                </div>
+            </div>
+            <div class="search-tip-item">
+                <div class="search-tip-icon" style="background:rgba(210,153,34,.1); color:var(--yellow);">
+                    <i class="bi bi-folder-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-medium" style="font-size:0.875rem;">Каталоги</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Пошук за назвою каталогу</div>
+                </div>
+            </div>
+            <div class="search-tip-item">
+                <div class="search-tip-icon" style="background:rgba(63,185,80,.1); color:var(--green);">
+                    <i class="bi bi-git"></i>
+                </div>
+                <div>
+                    <div class="fw-medium" style="font-size:0.875rem;">Коміти</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">За версією, changelog або файлом</div>
+                </div>
+            </div>
+            <div class="search-tip-item">
+                <div class="search-tip-icon" style="background:rgba(188,140,255,.1); color:var(--purple);">
+                    <i class="bi bi-tag-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-medium" style="font-size:0.875rem;">Теги</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Пошук за назвою тегу</div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

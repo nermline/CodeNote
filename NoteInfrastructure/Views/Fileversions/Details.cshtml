@@ -96,19 +96,14 @@
 
             @if (!string.IsNullOrEmpty(Model.Content))
             {
-                var lines = Model.Content.Split('\n');
-                <div class="ide-editor-wrap readonly">
-                    <div class="ide-line-numbers">@for (int i = 1; i <= lines.Length; i++) { @i <text>
-</text> }</div>
-                    <pre class="ide-pre">@Model.Content</pre>
-                </div>
+                <div class="wysiwyg-viewer">@Html.Raw(Model.Content)</div>
             }
             else
             {
                 <div class="empty-state">
-                    <i class="bi bi-file-earmark-code"></i>
+                    <i class="bi bi-file-earmark-text"></i>
                     <h5>Вміст порожній</h5>
-                    <p>Цей коміт не містить коду або тексту.</p>
+                    <p>Цей коміт не містить тексту.</p>
                 </div>
             }
         </div>

@@ -26,6 +26,10 @@
 
         @if (totalPages > 1)
         {
+            int rangeStart = Math.Max(1, pageIndex - 2);
+            int rangeCount = Math.Min(5, totalPages - Math.Max(0, pageIndex - 3));
+            int rangeEnd   = rangeStart + rangeCount - 1;
+
             <nav class="pagination-nav" aria-label="Сторінки">
                 <a class="page-btn @(!list.HasPreviousPage ? "disabled" : "")"
                    asp-controller="@controller" asp-action="@action"
@@ -34,26 +38,26 @@
                     <i class="bi bi-chevron-left"></i>
                 </a>
 
-                @if (pageIndex > 3)
+                @if (rangeStart > 1)
                 {
                     <a class="page-btn" asp-controller="@controller" asp-action="@action"
                        asp-route-page="1" asp-route-search="@search">1</a>
-                    if (pageIndex > 4)
+                    if (rangeStart > 2)
                     {
                         <span class="page-ellipsis">…</span>
                     }
                 }
 
-                @foreach (var p in Enumerable.Range(Math.Max(1, pageIndex - 2), Math.Min(5, totalPages - Math.Max(0, pageIndex - 3))))
+                @foreach (var p in Enumerable.Range(rangeStart, rangeCount))
                 {
                     <a class="page-btn @(p == pageIndex ? "active" : "")"
                        asp-controller="@controller" asp-action="@action"
                        asp-route-page="@p" asp-route-search="@search">@p</a>
                 }
 
-                @if (pageIndex < totalPages - 2)
+                @if (rangeEnd < totalPages)
                 {
-                    if (pageIndex < totalPages - 3)
+                    if (rangeEnd < totalPages - 1)
                     {
                         <span class="page-ellipsis">…</span>
                     }

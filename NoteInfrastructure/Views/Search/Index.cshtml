@@ -1,3 +1,4 @@
+@using NoteInfrastructure.Helpers
 @model NoteInfrastructure.Models.SearchResultViewModel
 
 @{
@@ -5,6 +6,31 @@
         ? "Глобальний пошук"
         : $"Пошук: {Model.Query}";
     bool hasQuery = !string.IsNullOrWhiteSpace(Model.Query);
+
+    // Helper: build search URL preserving all page params except the changed one
+    int filesPage   = Model.Files?.PageIndex   ?? 1;
+    int foldersPage = Model.Folders?.PageIndex ?? 1;
+    int commitsPage = Model.Commits?.PageIndex ?? 1;
+    int tagsPage    = Model.Tags?.PageIndex    ?? 1;
+
+    string SearchUrl(string changedParam, int page) => Url.Action("Index", "Search", new
+    {
+        q           = Model.Query,
+        filesPage   = changedParam == "filesPage"   ? page : filesPage,
+        foldersPage = changedParam == "foldersPage" ? page : foldersPage,
+        commitsPage = changedParam == "commitsPage" ? page : commitsPage,
+        tagsPage    = changedParam == "tagsPage"    ? page : tagsPage,
+    })!;
+}
+
+@* Renders a compact pagination bar for a search section *@
+@functions {
+    (int start, int count, int end) CalcRange(int pageIndex, int totalPages)
+    {
+        int s = Math.Max(1, pageIndex - 2);
+        int c = Math.Min(5, totalPages - Math.Max(0, pageIndex - 3));
+        return (s, c, s + c - 1);
+    }
 }
 
 <div class="page-header">
@@ -55,13 +81,13 @@
         </div>
 
         <!-- FILES -->
-        @if (Model.Files.Any())
+        @if (Model.Files != null && Model.Files.TotalCount > 0)
         {
             <div class="search-section">
                 <div class="search-section-header">
                     <i class="bi bi-file-earmark-code" style="color:var(--accent);"></i>
                     Файли
-                    <span class="search-count-badge">@Model.Files.Count</span>
+                    <span class="search-count-badge">@Model.Files.TotalCount</span>
                 </div>
                 <div class="card">
                     <div class="card-body p-0">
@@ -108,18 +134,35 @@
                             </tbody>
                         </table>
                     </div>
+                    @if (Model.Files.TotalPages > 1)
+                    {
+                        var (fS, fC, fE) = CalcRange(filesPage, Model.Files.TotalPages);
+                        <div class="pagination-bar border-top">
+                            <span class="pagination-info">
+                                <strong>@((filesPage-1)*10+1)–@(Math.Min(filesPage*10, Model.Files.TotalCount))</strong>
+                                з <strong>@Model.Files.TotalCount</strong>
+                            </span>
+                            <nav class="pagination-nav">
+                                <a class="page-btn @(!Model.Files.HasPreviousPage ? "disabled" : "")" href="@SearchUrl("filesPage", filesPage-1)"><i class="bi bi-chevron-left"></i></a>
+                                @if (fS > 1) { <a class="page-btn" href="@SearchUrl("filesPage",1)">1</a> @if(fS>2){<span class="page-ellipsis">…</span>} }
+                                @foreach (var p in Enumerable.Range(fS, fC)) { <a class="page-btn @(p==filesPage?"active":"")" href="@SearchUrl("filesPage",p)">@p</a> }
+                                @if (fE < Model.Files.TotalPages) { @if(fE<Model.Files.TotalPages-1){<span class="page-ellipsis">…</span>} <a class="page-btn" href="@SearchUrl("filesPage",Model.Files.TotalPages)">@Model.Files.TotalPages</a> }
+                                <a class="page-btn @(!Model.Files.HasNextPage ? "disabled" : "")" href="@SearchUrl("filesPage", filesPage+1)"><i class="bi bi-chevron-right"></i></a>
+                            </nav>
+                        </div>
+                    }
                 </div>
             </div>
         }
 
         <!-- FOLDERS -->
-        @if (Model.Folders.Any())
+        @if (Model.Folders != null && Model.Folders.TotalCount > 0)
         {
             <div class="search-section">
                 <div class="search-section-header">
                     <i class="bi bi-folder-fill" style="color:var(--yellow);"></i>
                     Каталоги
-                    <span class="search-count-badge">@Model.Folders.Count</span>
+                    <span class="search-count-badge">@Model.Folders.TotalCount</span>
                 </div>
                 <div class="search-folders-grid">
                     @foreach (var folder in Model.Folders)
@@ -135,17 +178,34 @@
                         </a>
                     }
                 </div>
+                @if (Model.Folders.TotalPages > 1)
+                {
+                    var (fdS, fdC, fdE) = CalcRange(foldersPage, Model.Folders.TotalPages);
+                    <div class="pagination-bar mt-2">
+                        <span class="pagination-info">
+                            <strong>@((foldersPage-1)*10+1)–@(Math.Min(foldersPage*10, Model.Folders.TotalCount))</strong>
+                            з <strong>@Model.Folders.TotalCount</strong>
+                        </span>
+                        <nav class="pagination-nav">
+                            <a class="page-btn @(!Model.Folders.HasPreviousPage ? "disabled" : "")" href="@SearchUrl("foldersPage", foldersPage-1)"><i class="bi bi-chevron-left"></i></a>
+                            @if (fdS > 1) { <a class="page-btn" href="@SearchUrl("foldersPage",1)">1</a> @if(fdS>2){<span class="page-ellipsis">…</span>} }
+                            @foreach (var p in Enumerable.Range(fdS, fdC)) { <a class="page-btn @(p==foldersPage?"active":"")" href="@SearchUrl("foldersPage",p)">@p</a> }
+                            @if (fdE < Model.Folders.TotalPages) { @if(fdE<Model.Folders.TotalPages-1){<span class="page-ellipsis">…</span>} <a class="page-btn" href="@SearchUrl("foldersPage",Model.Folders.TotalPages)">@Model.Folders.TotalPages</a> }
+                            <a class="page-btn @(!Model.Folders.HasNextPage ? "disabled" : "")" href="@SearchUrl("foldersPage", foldersPage+1)"><i class="bi bi-chevron-right"></i></a>
+                        </nav>
+                    </div>
+                }
             </div>
         }
 
         <!-- COMMITS -->
-        @if (Model.Commits.Any())
+        @if (Model.Commits != null && Model.Commits.TotalCount > 0)
         {
             <div class="search-section">
                 <div class="search-section-header">
                     <i class="bi bi-git" style="color:var(--green);"></i>
                     Коміти
-                    <span class="search-count-badge">@Model.Commits.Count</span>
+                    <span class="search-count-badge">@Model.Commits.TotalCount</span>
                 </div>
                 <div class="card">
                     <div class="card-body p-0">
@@ -185,18 +245,35 @@
                             </tbody>
                         </table>
                     </div>
+                    @if (Model.Commits.TotalPages > 1)
+                    {
+                        var (cS, cC, cE) = CalcRange(commitsPage, Model.Commits.TotalPages);
+                        <div class="pagination-bar border-top">
+                            <span class="pagination-info">
+                                <strong>@((commitsPage-1)*10+1)–@(Math.Min(commitsPage*10, Model.Commits.TotalCount))</strong>
+                                з <strong>@Model.Commits.TotalCount</strong>
+                            </span>
+                            <nav class="pagination-nav">
+                                <a class="page-btn @(!Model.Commits.HasPreviousPage ? "disabled" : "")" href="@SearchUrl("commitsPage", commitsPage-1)"><i class="bi bi-chevron-left"></i></a>
+                                @if (cS > 1) { <a class="page-btn" href="@SearchUrl("commitsPage",1)">1</a> @if(cS>2){<span class="page-ellipsis">…</span>} }
+                                @foreach (var p in Enumerable.Range(cS, cC)) { <a class="page-btn @(p==commitsPage?"active":"")" href="@SearchUrl("commitsPage",p)">@p</a> }
+                                @if (cE < Model.Commits.TotalPages) { @if(cE<Model.Commits.TotalPages-1){<span class="page-ellipsis">…</span>} <a class="page-btn" href="@SearchUrl("commitsPage",Model.Commits.TotalPages)">@Model.Commits.TotalPages</a> }
+                                <a class="page-btn @(!Model.Commits.HasNextPage ? "disabled" : "")" href="@SearchUrl("commitsPage", commitsPage+1)"><i class="bi bi-chevron-right"></i></a>
+                            </nav>
+                        </div>
+                    }
                 </div>
             </div>
         }
 
         <!-- TAGS -->
-        @if (Model.Tags.Any())
+        @if (Model.Tags != null && Model.Tags.TotalCount > 0)
         {
             <div class="search-section">
                 <div class="search-section-header">
                     <i class="bi bi-tag-fill" style="color:var(--purple);"></i>
                     Теги
-                    <span class="search-count-badge">@Model.Tags.Count</span>
+                    <span class="search-count-badge">@Model.Tags.TotalCount</span>
                 </div>
                 <div class="search-tags-grid">
                     @foreach (var tag in Model.Tags)
@@ -212,6 +289,23 @@
                         </a>
                     }
                 </div>
+                @if (Model.Tags.TotalPages > 1)
+                {
+                    var (tS, tC, tE) = CalcRange(tagsPage, Model.Tags.TotalPages);
+                    <div class="pagination-bar mt-2">
+                        <span class="pagination-info">
+                            <strong>@((tagsPage-1)*10+1)–@(Math.Min(tagsPage*10, Model.Tags.TotalCount))</strong>
+                            з <strong>@Model.Tags.TotalCount</strong>
+                        </span>
+                        <nav class="pagination-nav">
+                            <a class="page-btn @(!Model.Tags.HasPreviousPage ? "disabled" : "")" href="@SearchUrl("tagsPage", tagsPage-1)"><i class="bi bi-chevron-left"></i></a>
+                            @if (tS > 1) { <a class="page-btn" href="@SearchUrl("tagsPage",1)">1</a> @if(tS>2){<span class="page-ellipsis">…</span>} }
+                            @foreach (var p in Enumerable.Range(tS, tC)) { <a class="page-btn @(p==tagsPage?"active":"")" href="@SearchUrl("tagsPage",p)">@p</a> }
+                            @if (tE < Model.Tags.TotalPages) { @if(tE<Model.Tags.TotalPages-1){<span class="page-ellipsis">…</span>} <a class="page-btn" href="@SearchUrl("tagsPage",Model.Tags.TotalPages)">@Model.Tags.TotalPages</a> }
+                            <a class="page-btn @(!Model.Tags.HasNextPage ? "disabled" : "")" href="@SearchUrl("tagsPage", tagsPage+1)"><i class="bi bi-chevron-right"></i></a>
+                        </nav>
+                    </div>
+                }
             </div>
         }
     }

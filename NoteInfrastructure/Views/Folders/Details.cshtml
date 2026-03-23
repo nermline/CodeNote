@@ -1,7 +1,11 @@
+@using NoteInfrastructure.Helpers
 @model NoteDomain.Model.Folder
 
 @{
     ViewData["Title"] = Model.Name;
+
+    var subFolders = ViewData["SubFolders"] as PaginatedList<NoteDomain.Model.Folder>;
+    var files      = ViewData["Files"]      as PaginatedList<NoteDomain.Model.File>;
 
     string BuildFolderPath(NoteDomain.Model.Folder? folder)
     {
@@ -13,6 +17,18 @@
     }
 
     string folderPath = BuildFolderPath(Model);
+
+    int currentSubPage  = subFolders?.PageIndex  ?? 1;
+    int currentFilePage = files?.PageIndex ?? 1;
+
+    string SubUrl(int p)
+    {
+        return Url.Action("Details", "Folders", new { id = Model.Id, subPage = p, filePage = currentFilePage })!;
+    }
+    string FileUrl(int p)
+    {
+        return Url.Action("Details", "Folders", new { id = Model.Id, subPage = currentSubPage, filePage = p })!;
+    }
 }
 
 <div class="page-header">
@@ -50,18 +66,24 @@
 <div class="row g-3">
     <!-- Subfolders -->
     <div class="col-lg-5">
-        <div class="card h-100">
+        <div class="card h-100 d-flex flex-column">
             <div class="card-header-custom">
-                <span class="header-title"><i class="bi bi-folder2"></i> Підкаталоги</span>
+                <span class="header-title">
+                    <i class="bi bi-folder2"></i> Підкаталоги
+                    @if (subFolders != null && subFolders.TotalCount > 0)
+                    {
+                        <span class="badge badge-folder ms-1">@subFolders.TotalCount</span>
+                    }
+                </span>
                 <a asp-action="Create" asp-route-parentFolderId="@Model.Id" class="btn btn-sm btn-outline-success">
                     <i class="bi bi-folder-plus"></i> Новий
                 </a>
             </div>
 
-            @if (Model.InverseParentfolder != null && Model.InverseParentfolder.Any())
+            @if (subFolders != null && subFolders.Any())
             {
-                <div class="card-body p-0">
-                    @foreach (var subfolder in Model.InverseParentfolder)
+                <div class="card-body p-0 flex-grow-1">
+                    @foreach (var subfolder in subFolders)
                     {
                         <div style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1.1rem; border-bottom:1px solid var(--border-muted);">
                             <a asp-action="Details" asp-route-id="@subfolder.Id"
@@ -76,6 +98,45 @@
                         </div>
                     }
                 </div>
+                @if (subFolders.TotalPages > 1)
+                {
+                    <div class="pagination-bar border-top">
+                        <span class="pagination-info">
+                            <i class="bi bi-list-ul me-1"></i>
+                            <strong>@((subFolders.PageIndex-1)*subFolders.PageSize+1)–@(Math.Min(subFolders.PageIndex*subFolders.PageSize, subFolders.TotalCount))</strong>
+                            з <strong>@subFolders.TotalCount</strong>
+                        </span>
+                        <nav class="pagination-nav">
+                            <a class="page-btn @(!subFolders.HasPreviousPage ? "disabled" : "")"
+                               href="@SubUrl(subFolders.PageIndex - 1)" title="Попередня">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                            @{
+                                int sRangeStart = Math.Max(1, subFolders.PageIndex - 2);
+                                int sRangeCount = Math.Min(5, subFolders.TotalPages - Math.Max(0, subFolders.PageIndex - 3));
+                                int sRangeEnd   = sRangeStart + sRangeCount - 1;
+                            }
+                            @if (sRangeStart > 1)
+                            {
+                                <a class="page-btn" href="@SubUrl(1)">1</a>
+                                @if (sRangeStart > 2) { <span class="page-ellipsis">…</span> }
+                            }
+                            @foreach (var p in Enumerable.Range(sRangeStart, sRangeCount))
+                            {
+                                <a class="page-btn @(p == subFolders.PageIndex ? "active" : "")" href="@SubUrl(p)">@p</a>
+                            }
+                            @if (sRangeEnd < subFolders.TotalPages)
+                            {
+                                @if (sRangeEnd < subFolders.TotalPages - 1) { <span class="page-ellipsis">…</span> }
+                                <a class="page-btn" href="@SubUrl(subFolders.TotalPages)">@subFolders.TotalPages</a>
+                            }
+                            <a class="page-btn @(!subFolders.HasNextPage ? "disabled" : "")"
+                               href="@SubUrl(subFolders.PageIndex + 1)" title="Наступна">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </nav>
+                    </div>
+                }
             }
             else
             {
@@ -89,17 +150,23 @@
 
     <!-- Files -->
     <div class="col-lg-7">
-        <div class="card h-100">
+        <div class="card h-100 d-flex flex-column">
             <div class="card-header-custom">
-                <span class="header-title"><i class="bi bi-file-earmark-code"></i> Файли</span>
+                <span class="header-title">
+                    <i class="bi bi-file-earmark-code"></i> Файли
+                    @if (files != null && files.TotalCount > 0)
+                    {
+                        <span class="badge badge-folder ms-1">@files.TotalCount</span>
+                    }
+                </span>
                 <a asp-controller="Files" asp-action="Create" asp-route-folderId="@Model.Id" class="btn btn-sm btn-outline-primary">
                     <i class="bi bi-plus-lg"></i> Новий файл
                 </a>
             </div>
 
-            @if (Model.Files != null && Model.Files.Any())
+            @if (files != null && files.Any())
             {
-                <div class="card-body p-0">
+                <div class="card-body p-0 flex-grow-1">
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
@@ -109,7 +176,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var file in Model.Files)
+                            @foreach (var file in files)
                             {
                                 <tr>
                                     <td class="ps-3">
@@ -136,6 +203,45 @@
                         </tbody>
                     </table>
                 </div>
+                @if (files.TotalPages > 1)
+                {
+                    <div class="pagination-bar border-top">
+                        <span class="pagination-info">
+                            <i class="bi bi-list-ul me-1"></i>
+                            <strong>@((files.PageIndex-1)*files.PageSize+1)–@(Math.Min(files.PageIndex*files.PageSize, files.TotalCount))</strong>
+                            з <strong>@files.TotalCount</strong>
+                        </span>
+                        <nav class="pagination-nav">
+                            <a class="page-btn @(!files.HasPreviousPage ? "disabled" : "")"
+                               href="@FileUrl(files.PageIndex - 1)" title="Попередня">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                            @{
+                                int fRangeStart = Math.Max(1, files.PageIndex - 2);
+                                int fRangeCount = Math.Min(5, files.TotalPages - Math.Max(0, files.PageIndex - 3));
+                                int fRangeEnd   = fRangeStart + fRangeCount - 1;
+                            }
+                            @if (fRangeStart > 1)
+                            {
+                                <a class="page-btn" href="@FileUrl(1)">1</a>
+                                @if (fRangeStart > 2) { <span class="page-ellipsis">…</span> }
+                            }
+                            @foreach (var p in Enumerable.Range(fRangeStart, fRangeCount))
+                            {
+                                <a class="page-btn @(p == files.PageIndex ? "active" : "")" href="@FileUrl(p)">@p</a>
+                            }
+                            @if (fRangeEnd < files.TotalPages)
+                            {
+                                @if (fRangeEnd < files.TotalPages - 1) { <span class="page-ellipsis">…</span> }
+                                <a class="page-btn" href="@FileUrl(files.TotalPages)">@files.TotalPages</a>
+                            }
+                            <a class="page-btn @(!files.HasNextPage ? "disabled" : "")"
+                               href="@FileUrl(files.PageIndex + 1)" title="Наступна">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </nav>
+                    </div>
+                }
             }
             else
             {

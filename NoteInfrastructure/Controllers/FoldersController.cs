@@ -50,19 +50,35 @@ namespace NoteInfrastructure.Controllers
             return View(result);
         }
 
-        public async Task<IActionResult> Details(int? id)
+        private const int SubPageSize  = 20;
+        private const int FilePageSize = 15;
+
+        public async Task<IActionResult> Details(int? id, int subPage = 1, int filePage = 1)
         {
             if (id == null) return NotFound();
 
             var folder = await _context.Folders
                 .Include(f => f.Parentfolder)
-                .Include(f => f.InverseParentfolder)
-                .Include(f => f.Files)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (folder == null) return NotFound();
 
             await LoadFolderParentChain(folder);
+
+            var subFolders = await PaginatedList<Folder>.CreateAsync(
+                _context.Folders
+                    .Where(f => f.Parentfolderid == id)
+                    .OrderBy(f => f.Name),
+                subPage, SubPageSize);
+
+            var files = await PaginatedList<NoteDomain.Model.File>.CreateAsync(
+                _context.Files
+                    .Where(f => f.Folderid == id)
+                    .OrderBy(f => f.Name),
+                filePage, FilePageSize);
+
+            ViewData["SubFolders"] = subFolders;
+            ViewData["Files"]      = files;
 
             return View(folder);
         }

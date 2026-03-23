@@ -41,7 +41,7 @@ namespace NoteInfrastructure.Controllers
                     .Include(fv => fv.File)
                     .Where(fv =>
                         (fv.Changelog != null && fv.Changelog.ToLower().Contains(term)) ||
-                        (fv.Versionnumber != null && fv.Versionnumber.ToLower().Contains(term)) ||
+                        fv.Versionnumber.ToString().Contains(term) ||
                         (fv.File != null && fv.File.Name.ToLower().Contains(term)))
                     .OrderByDescending(fv => fv.Createdat)
                     .Take(MaxResultsPerCategory)

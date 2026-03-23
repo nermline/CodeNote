@@ -42,10 +42,13 @@ namespace NoteInfrastructure.Controllers
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchTerm = search.ToLower();
                 query = query.Where(fv =>
-                    (fv.Versionnumber != null && fv.Versionnumber.ToLower().Contains(search.ToLower())) ||
-                    (fv.Changelog != null && fv.Changelog.ToLower().Contains(search.ToLower())) ||
-                    (fv.File != null && fv.File.Name.ToLower().Contains(search.ToLower())));
+                    fv.Versionnumber.ToString().Contains(searchTerm) ||
+                    (fv.Changelog != null && fv.Changelog.ToLower().Contains(searchTerm)) ||
+                    (fv.File != null && fv.File.Name.ToLower().Contains(searchTerm)));
+            }
 
             query = query.OrderByDescending(f => f.Createdat);
 

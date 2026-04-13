@@ -8,48 +8,36 @@ using NoteTag = NoteDomain.Model.Tag;
 
 namespace NoteInfrastructure.Services
 {
-    /// <summary>
-    /// Імпортує каталоги, файли, теги та версії файлів з .docx-документа.
-    ///
-    /// Очікувана структура (відповідає FolderDocxExportService):
-    ///   Heading1  → назва каталогу (після «📁 Каталог:»)
-    ///   Абзац «Дата створення: dd.MM.yyyy HH:mm» → дата каталогу
-    ///   Heading2  → назва файлу (після «📄 »)
-    ///   Таблиця після H2 → деталі файлу: Опис, Теги, Дата створення
-    ///   Абзац «▸ Версія N» → нова версія
-    ///   Таблиця після маркера версії → Журнал змін, Дата, Вміст
-    /// </summary>
     public class FolderDocxImportService : IImportService<Folder>
     {
         private readonly NotedbContext _context;
 
-        private const string FolderPrefix      = "📁 Каталог:";
-        private const string FilePrefix        = "📄 ";
-        private const string VersionPrefix     = "▸ Версія ";
-        private const string FolderDatePrefix  = "Дата створення:";
+        private const string FolderPrefix = "📁 Каталог:";
+        private const string FilePrefix = "📄 ";
+        private const string VersionPrefix = "▸ Версія ";
+        private const string FolderDatePrefix = "Дата створення:";
 
-        private const string LabelDescription  = "Опис";
-        private const string LabelTags         = "Теги";
-        private const string LabelFileDate     = "Дата створення";
-        private const string LabelChangelog    = "Журнал змін";
-        private const string LabelVersionDate  = "Дата";
-        private const string LabelContent      = "Вміст";
+        private const string LabelDescription = "Опис";
+        private const string LabelTags = "Теги";
+        private const string LabelFileDate = "Дата створення";
+        private const string LabelChangelog = "Журнал змін";
+        private const string LabelVersionDate = "Дата";
+        private const string LabelContent = "Вміст";
 
-        private const string DateFormat        = "dd.MM.yyyy HH:mm";
+        private const string DateFormat = "dd.MM.yyyy HH:mm";
 
         public FolderDocxImportService(NotedbContext context)
         {
             _context = context;
         }
 
-        // ── Клас-стан ──────────────────────────────────────────────────────
         private sealed class ImportState
         {
-            public Folder?      CurrentFolder  { get; set; }
-            public File?        CurrentFile    { get; set; }
+            public Folder? CurrentFolder { get; set; }
+            public File? CurrentFile { get; set; }
             public Fileversion? CurrentVersion { get; set; }
-            public bool         InFileMeta     { get; set; }
-            public bool         InVersionBlock { get; set; }
+            public bool InFileMeta { get; set; }
+            public bool InVersionBlock { get; set; }
         }
 
         public async Task ImportFromStreamAsync(Stream stream, CancellationToken cancellationToken)
@@ -66,8 +54,8 @@ namespace NoteInfrastructure.Services
                        ?? throw new InvalidOperationException("Документ не містить тіла.");
 
             var folderCache = new Dictionary<string, Folder>(StringComparer.OrdinalIgnoreCase);
-            var fileCache   = new Dictionary<string, File>(StringComparer.OrdinalIgnoreCase);
-            var tagCache    = new Dictionary<string, NoteTag>(StringComparer.OrdinalIgnoreCase);
+            var fileCache = new Dictionary<string, File>(StringComparer.OrdinalIgnoreCase);
+            var tagCache = new Dictionary<string, NoteTag>(StringComparer.OrdinalIgnoreCase);
 
             var state = new ImportState();
 
@@ -81,7 +69,7 @@ namespace NoteInfrastructure.Services
 
                     case Table table:
                         await HandleTableAsync(table, state, tagCache, cancellationToken);
-                        state.InFileMeta     = false;
+                        state.InFileMeta = false;
                         state.InVersionBlock = false;
                         break;
                 }
@@ -90,15 +78,11 @@ namespace NoteInfrastructure.Services
             await _context.SaveChangesAsync(cancellationToken);
         }
 
-        // ──────────────────────────────────────────────
-        // Обробники елементів
-        // ──────────────────────────────────────────────
-
         private async Task HandleParagraphAsync(
             Paragraph para,
             ImportState state,
-            Dictionary<string, Folder>  folderCache,
-            Dictionary<string, File>    fileCache,
+            Dictionary<string, Folder> folderCache,
+            Dictionary<string, File> fileCache,
             Dictionary<string, NoteTag> tagCache,
             CancellationToken ct)
         {
@@ -112,10 +96,10 @@ namespace NoteInfrastructure.Services
                     return;
 
                 var folderName = text[FolderPrefix.Length..].Trim();
-                state.CurrentFolder  = await GetOrCreateFolderAsync(folderName, folderCache, ct);
-                state.CurrentFile    = null;
+                state.CurrentFolder = await GetOrCreateFolderAsync(folderName, folderCache, ct);
+                state.CurrentFile = null;
                 state.CurrentVersion = null;
-                state.InFileMeta     = false;
+                state.InFileMeta = false;
                 state.InVersionBlock = false;
                 fileCache.Clear();
                 return;
@@ -130,14 +114,14 @@ namespace NoteInfrastructure.Services
                     ? text[FilePrefix.Length..].Trim()
                     : text;
 
-                state.CurrentFile    = await GetOrCreateFileAsync(fileName, state.CurrentFolder, fileCache, ct);
+                state.CurrentFile = await GetOrCreateFileAsync(fileName, state.CurrentFolder, fileCache, ct);
                 state.CurrentVersion = null;
-                state.InFileMeta     = true;
+                state.InFileMeta = true;
                 state.InVersionBlock = false;
                 return;
             }
 
-            // Абзац з датою каталогу: «Дата створення: 13.04.2026 06:03»
+            // Абзац з датою каталогу
             if (state.CurrentFolder is not null
                 && text.StartsWith(FolderDatePrefix, StringComparison.OrdinalIgnoreCase))
             {
@@ -159,13 +143,18 @@ namespace NoteInfrastructure.Services
 
                 state.CurrentVersion = new Fileversion
                 {
-                    File          = state.CurrentFile,
+                    File = state.CurrentFile,
                     Versionnumber = vNum,
-                    Createdat     = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                    Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
                 };
+
+                // ВИПРАВЛЕННЯ: Додаємо версію до колекції поточного файлу, 
+                // щоб наступні версії правильно інкрементували номер
+                state.CurrentFile.Fileversions.Add(state.CurrentVersion);
+
                 _context.Fileversions.Add(state.CurrentVersion);
                 state.InVersionBlock = true;
-                state.InFileMeta     = false;
+                state.InFileMeta = false;
             }
         }
 
@@ -189,7 +178,6 @@ namespace NoteInfrastructure.Services
                     if (label.Equals(LabelTags, StringComparison.OrdinalIgnoreCase))
                         await AttachTagsAsync(value, state.CurrentFile, tagCache, ct);
 
-                    // Дата створення файлу
                     if (label.Equals(LabelFileDate, StringComparison.OrdinalIgnoreCase)
                         && TryParseDate(value, out var fileDate))
                         state.CurrentFile.Createdat = fileDate;
@@ -207,14 +195,13 @@ namespace NoteInfrastructure.Services
                     if (label.Equals(LabelChangelog, StringComparison.OrdinalIgnoreCase))
                         state.CurrentVersion.Changelog = value;
 
-                    // Дата версії
                     if (label.Equals(LabelVersionDate, StringComparison.OrdinalIgnoreCase)
                         && TryParseDate(value, out var versionDate))
                         state.CurrentVersion.Createdat = versionDate;
 
                     if (label.Equals(LabelContent, StringComparison.OrdinalIgnoreCase))
                     {
-                        var content  = value;
+                        var content = value;
                         var truncIdx = content.LastIndexOf("… [всього", StringComparison.Ordinal);
                         if (truncIdx >= 0) content = content[..truncIdx];
                         state.CurrentVersion.Content = content;
@@ -223,7 +210,7 @@ namespace NoteInfrastructure.Services
                 return;
             }
 
-            // Таблиця без явного контексту — розпізнаємо мітки
+            // Таблиця без явного контексту
             foreach (var row in rows)
             {
                 var label = DocxHelper.GetCellText(row, 0);
@@ -253,10 +240,6 @@ namespace NoteInfrastructure.Services
                 }
             }
         }
-
-        // ──────────────────────────────────────────────
-        // БД-хелпери
-        // ──────────────────────────────────────────────
 
         private async Task<Folder> GetOrCreateFolderAsync(
             string name,
@@ -299,8 +282,8 @@ namespace NoteInfrastructure.Services
             {
                 file = new File
                 {
-                    Name      = name,
-                    Folder    = folder,
+                    Name = name,
+                    Folder = folder,
                     Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
                 };
                 _context.Files.Add(file);

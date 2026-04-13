@@ -8,17 +8,20 @@ using Microsoft.EntityFrameworkCore;
 using NoteDomain.Model;
 using NoteInfrastructure;
 using NoteInfrastructure.Helpers;
+using NoteInfrastructure.Services;
 
 namespace NoteInfrastructure.Controllers
 {
     public class FoldersController : Controller
     {
         private readonly NotedbContext _context;
+        private readonly IDataPortServiceFactory<Folder> _dataPortFactory;
         private const int PageSize = 24;
 
         public FoldersController(NotedbContext context)
         {
             _context = context;
+            _dataPortFactory = new FolderDataPortServiceFactory(context);
         }
 
         private async Task LoadFolderParentChain(Folder? folder)
@@ -173,6 +176,96 @@ namespace NoteInfrastructure.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        // ──────────────────────────────────────────────
+        // Імпорт / Експорт (Excel та Word — єдиний маршрут)
+        // ──────────────────────────────────────────────
+
+        [HttpGet]
+        public IActionResult Import()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Єдина точка імпорту для Excel (.xlsx) і Word (.docx).
+        /// Тип файлу визначається автоматично за <c>ContentType</c> завантаженого файлу;
+        /// потрібний сервіс повертає <see cref="FolderDataPortServiceFactory"/>.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Import(
+            IFormFile file,
+            CancellationToken cancellationToken = default)
+        {
+            if (file == null || file.Length == 0)
+            {
+                ModelState.AddModelError("file", "Будь ласка, оберіть файл (.xlsx або .docx) для завантаження.");
+                return View();
+            }
+
+            try
+            {
+                // Деякі браузери/ОС надсилають application/octet-stream замість
+                // правильного MIME-типу для .xlsx/.docx. Визначаємо тип за розширенням.
+                var effectiveContentType = file.ContentType;
+                if (!_dataPortFactory.IsContentTypeSupported(effectiveContentType))
+                {
+                    effectiveContentType = Path.GetExtension(file.FileName).ToLowerInvariant() switch
+                    {
+                        ".xlsx" => FolderDataPortServiceFactory.ExcelContentType,
+                        ".docx" => FolderDataPortServiceFactory.DocxContentType,
+                        _       => effectiveContentType,
+                    };
+                }
+
+                var importService = _dataPortFactory.GetImportService(effectiveContentType);
+                using var stream = file.OpenReadStream();
+                await importService.ImportFromStreamAsync(stream, cancellationToken);
+            }
+            catch (NotImplementedException)
+            {
+                var ext = Path.GetExtension(file.FileName);
+                ModelState.AddModelError("file",
+                    $"Непідтримуваний формат файлу «{ext}». Оберіть .xlsx або .docx.");
+                return View();
+            }
+            catch (Exception ex)
+            {
+                var detail = ex.InnerException?.Message ?? ex.Message;
+                ModelState.AddModelError(string.Empty, $"Помилка імпорту: {detail}");
+                return View();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        /// <summary>
+        /// Єдина точка експорту для Excel (.xlsx) і Word (.docx).
+        /// Формат задається параметром <paramref name="contentType"/> (за замовчуванням — Excel).
+        /// Розширення файлу визначається автоматично.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Export(
+            [FromQuery] string contentType =
+                FolderDataPortServiceFactory.ExcelContentType,
+            CancellationToken cancellationToken = default)
+        {
+            var exportService = _dataPortFactory.GetExportService(contentType);
+
+            var memoryStream = new MemoryStream();
+            await exportService.WriteToAsync(memoryStream, cancellationToken);
+            await memoryStream.FlushAsync(cancellationToken);
+            memoryStream.Position = 0;
+
+            // Визначаємо розширення на основі content type, а не хардкодом
+            var extension = contentType == FolderDataPortServiceFactory.DocxContentType
+                ? "docx"
+                : "xlsx";
+            var fileName = $"folders_{DateTime.UtcNow:yyyy-MM-dd}.{extension}";
+
+            return new FileStreamResult(memoryStream, contentType) { FileDownloadName = fileName };
         }
 
         private bool FolderExists(int id) => _context.Folders.Any(e => e.Id == id);

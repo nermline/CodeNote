@@ -13,9 +13,32 @@
         <h1 class="page-title"><i class="bi bi-folder2"></i> Каталоги</h1>
         <div class="breadcrumb-path"><i class="bi bi-hdd-network me-1"></i> root / folders /</div>
     </div>
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="bi bi-folder-plus"></i> Новий каталог
-    </a>
+    <div class="d-flex gap-2">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-folder-plus"></i> Новий каталог
+        </a>
+        <a asp-action="Import" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-arrow-up"></i> Імпорт
+        </a>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download"></i> Експорт
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item" asp-action="Export">
+                        <i class="bi bi-file-earmark-excel text-success me-2"></i> Excel (.xlsx)
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-action="Export" asp-route-contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                        <i class="bi bi-file-earmark-word text-primary me-2"></i> Word (.docx)
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
 </div>
 
 <div class="list-search-bar mb-3">

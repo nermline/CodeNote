@@ -1268,7 +1268,9 @@ textarea.form-control { resize: vertical; min-height: 100px; }
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1.25rem;
-    border-top: 1px solid var(--border-muted);
+    margin-top: 1.25rem;
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-md);
     background: var(--bg-elevated);
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -1722,4 +1724,65 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 /* Combined toolbar focus border top */
 .wysiwyg-toolbar:has(+ .wysiwyg-editor:focus) {
     border-color: var(--accent);
+}
+
+/* ── File Input ──────────────────────────────────────────── */
+input[type="file"].form-control {
+    padding: 0;
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+input[type="file"].form-control::file-selector-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    border: none;
+    border-right: 1px solid var(--border);
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+    margin-right: 0.75rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: stretch;
+}
+
+input[type="file"].form-control::file-selector-button:hover {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+}
+
+input[type="file"].form-control:focus::file-selector-button {
+    background: rgba(88,166,255,.1);
+    color: var(--accent);
+}
+
+/* ── Alert light override (dark theme) ───────────────────── */
+.alert-light {
+    background: var(--bg-elevated) !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+}
+
+.alert-light strong {
+    color: var(--text-primary);
+}
+
+.alert-light ul {
+    color: var(--text-secondary);
+}
+
+.alert-light li strong {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
 }

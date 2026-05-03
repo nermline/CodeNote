@@ -97,19 +97,16 @@
                         <td class="align-middle text-end">
                             <div class="d-flex gap-1 justify-content-end">
 
-                                @* Редагувати ролі *@
                                 <a asp-action="Edit" asp-route-userId="@u.Id"
                                    class="btn btn-sm btn-outline-primary" title="Ролі">
                                     <i class="bi bi-shield-check"></i>
                                 </a>
 
-                                @* Скинути пароль *@
                                 <a asp-action="ResetPassword" asp-route-userId="@u.Id"
                                    class="btn btn-sm btn-outline-warning" title="Скинути пароль">
                                     <i class="bi bi-key"></i>
                                 </a>
 
-                                @* Блокування — недоступне для єдиного адміна *@
                                 @if (!u.IsLastAdmin)
                                 {
                                     <form asp-action="ToggleLock" method="post" class="d-inline">
@@ -131,7 +128,6 @@
                                     </button>
                                 }
 
-                                @* Видалити — приховано для єдиного адміна *@
                                 @if (!u.IsLastAdmin)
                                 {
                                     <a asp-action="DeleteUser" asp-route-userId="@u.Id"

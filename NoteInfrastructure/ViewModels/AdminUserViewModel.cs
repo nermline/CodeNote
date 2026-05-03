@@ -1,21 +1,15 @@
 namespace NoteInfrastructure.ViewModels;
 
-/// <summary>
-/// Агрегована модель для відображення користувача в адмін-панелі.
-/// </summary>
 public class AdminUserViewModel
 {
     public string Id           { get; set; } = null!;
     public string Email        { get; set; } = null!;
     public int?   Year         { get; set; }
     public bool   IsLockedOut  { get; set; }
-    public bool   IsLastAdmin  { get; set; }   // true — єдиний адмін у системі
+    public bool   IsLastAdmin  { get; set; }
     public IList<string> Roles { get; set; } = [];
 }
 
-/// <summary>
-/// ViewModel для скидання пароля адміністратором.
-/// </summary>
 public class AdminResetPasswordViewModel
 {
     public string UserId    { get; set; } = null!;

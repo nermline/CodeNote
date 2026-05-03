@@ -23,7 +23,6 @@
     })!;
 }
 
-@* Renders a compact pagination bar for a search section *@
 @functions {
     (int start, int count, int end) CalcRange(int pageIndex, int totalPages)
     {
@@ -80,7 +79,6 @@
             <span class="search-query-badge">@Model.Query</span>
         </div>
 
-        <!-- FILES -->
         @if (Model.Files != null && Model.Files.TotalCount > 0)
         {
             <div class="search-section">
@@ -155,7 +153,6 @@
             </div>
         }
 
-        <!-- FOLDERS -->
         @if (Model.Folders != null && Model.Folders.TotalCount > 0)
         {
             <div class="search-section">
@@ -198,7 +195,6 @@
             </div>
         }
 
-        <!-- COMMITS -->
         @if (Model.Commits != null && Model.Commits.TotalCount > 0)
         {
             <div class="search-section">
@@ -266,7 +262,6 @@
             </div>
         }
 
-        <!-- TAGS -->
         @if (Model.Tags != null && Model.Tags.TotalCount > 0)
         {
             <div class="search-section">

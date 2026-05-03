@@ -21,8 +21,6 @@ public class FoldersController : BaseUserController
         _dataPortFactory = new FolderDataPortServiceFactory(context);
     }
 
-    // ── Допоміжні ─────────────────────────────────────────────────────────
-
     private async Task LoadFolderParentChain(Folder? folder)
     {
         if (folder == null) return;
@@ -35,9 +33,6 @@ public class FoldersController : BaseUserController
         }
     }
 
-    /// <summary>
-    /// Повертає Id кореневої папки для даної папки (рекурсивно вгору по дереву).
-    /// </summary>
     private async Task<string?> GetRootUserIdAsync(Folder folder)
     {
         var current = folder;
@@ -50,9 +45,6 @@ public class FoldersController : BaseUserController
         return current.UserId;
     }
 
-    /// <summary>
-    /// Перевіряє, що папка належить поточному користувачеві.
-    /// </summary>
     private async Task<bool> FolderBelongsToCurrentUser(int folderId)
     {
         var folder = await _context.Folders.FindAsync(folderId);
@@ -61,17 +53,12 @@ public class FoldersController : BaseUserController
         return rootUserId == CurrentUserId;
     }
 
-    /// <summary>
-    /// SelectList папок поточного користувача.
-    /// </summary>
     private IQueryable<Folder> UserFolders =>
         _context.Folders.Where(f =>
             f.UserId == CurrentUserId ||
             _context.Folders.Any(root =>
                 root.UserId == CurrentUserId &&
                 f.Parentfolderid == root.Id));
-
-    // ── Index ──────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Index(string? search, int page = 1)
     {
@@ -89,8 +76,6 @@ public class FoldersController : BaseUserController
         var result = await PaginatedList<Folder>.CreateAsync(query, page, PageSize, search);
         return View(result);
     }
-
-    // ── Details ────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Details(int? id, int subPage = 1, int filePage = 1)
     {
@@ -124,8 +109,6 @@ public class FoldersController : BaseUserController
         return View(folder);
     }
 
-    // ── Create ─────────────────────────────────────────────────────────────
-
     public IActionResult Create(int? parentFolderId)
     {
         ViewData["Parentfolderid"] = new SelectList(
@@ -140,7 +123,7 @@ public class FoldersController : BaseUserController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Name,Parentfolderid,Createdat,Id")] Folder folder)
     {
-        // Якщо це коренева папка — присвоюємо userId
+
         if (folder.Parentfolderid == null)
             folder.UserId = CurrentUserId;
         else if (!await FolderBelongsToCurrentUser(folder.Parentfolderid.Value))
@@ -165,8 +148,6 @@ public class FoldersController : BaseUserController
             "Id", "Name", folder.Parentfolderid);
         return View(folder);
     }
-
-    // ── Edit ───────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Edit(int? id)
     {
@@ -198,7 +179,7 @@ public class FoldersController : BaseUserController
         {
             try
             {
-                // Зберігаємо UserId при редагуванні кореневої папки
+
                 var existing = await _context.Folders.AsNoTracking().FirstAsync(f => f.Id == id);
                 folder.UserId = existing.UserId;
 
@@ -220,8 +201,6 @@ public class FoldersController : BaseUserController
             "Id", "Name", folder.Parentfolderid);
         return View(folder);
     }
-
-    // ── Delete ─────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Delete(int? id)
     {
@@ -248,8 +227,6 @@ public class FoldersController : BaseUserController
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
-
-    // ── Import / Export ────────────────────────────────────────────────────
 
     [HttpGet]
     public IActionResult Import() => View();

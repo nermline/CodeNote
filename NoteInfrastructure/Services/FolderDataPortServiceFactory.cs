@@ -2,10 +2,6 @@ using NoteDomain.Model;
 
 namespace NoteInfrastructure.Services;
 
-/// <summary>
-/// Фабрика сервісів імпорту/експорту для сутності <see cref="Folder"/>.
-/// Підтримує Excel (.xlsx) та Word (.docx).
-/// </summary>
 public class FolderDataPortServiceFactory : IDataPortServiceFactory<Folder>
 {
     public const string ExcelContentType =

@@ -96,7 +96,7 @@ public partial class NotedbContext : DbContext
                   .HasColumnName("createdat");
             entity.Property(e => e.Name).HasMaxLength(100).HasColumnName("name");
             entity.Property(e => e.Parentfolderid).HasColumnName("parentfolderid");
-            // ── нове поле ──────────────────────────────────────────────────
+
             entity.Property(e => e.UserId)
                   .HasMaxLength(450)
                   .HasColumnName("userid");
@@ -112,14 +112,13 @@ public partial class NotedbContext : DbContext
             entity.HasKey(e => e.Id).HasName("tags_pkey");
             entity.ToTable("tags");
 
-            // Унікальність тегу тепер в межах одного користувача
             entity.HasIndex(e => new { e.Name, e.UserId })
                   .IsUnique()
                   .HasDatabaseName("tags_name_userid_key");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Name).HasMaxLength(15).HasColumnName("name");
-            // ── нове поле ──────────────────────────────────────────────────
+
             entity.Property(e => e.UserId)
                   .HasMaxLength(450)
                   .HasColumnName("userid");

@@ -9,14 +9,13 @@ public static class RoleInitializer
         UserManager<AppUser>      userManager,
         RoleManager<IdentityRole> roleManager)
     {
-        // ── Ролі ──────────────────────────────────────────────────────────
+
         foreach (var roleName in new[] { "admin", "user" })
         {
             if (!await roleManager.RoleExistsAsync(roleName))
                 await roleManager.CreateAsync(new IdentityRole(roleName));
         }
 
-        // ── Адміністратор за замовчуванням ────────────────────────────────
         const string adminEmail    = "admin@codenote.ua";
         const string adminPassword = "Admin_1234";
 

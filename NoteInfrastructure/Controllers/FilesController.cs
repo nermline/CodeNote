@@ -15,8 +15,6 @@ public class FilesController : BaseUserController
 
     public FilesController(NotedbContext context) => _context = context;
 
-    // ── Допоміжні ─────────────────────────────────────────────────────────
-
     private async Task LoadFolderParentChain(Folder? folder)
     {
         if (folder == null) return;
@@ -29,7 +27,6 @@ public class FilesController : BaseUserController
         }
     }
 
-    /// <summary>Кореневий UserId для будь-якої папки (вгору по дереву).</summary>
     private async Task<string?> GetRootUserIdAsync(int folderId)
     {
         var current = await _context.Folders.FindAsync(folderId);
@@ -45,7 +42,6 @@ public class FilesController : BaseUserController
         return await GetRootUserIdAsync(file.Folderid) == CurrentUserId;
     }
 
-    /// <summary>Запит файлів поточного користувача через кореневу папку.</summary>
     private IQueryable<File> UserFiles =>
         _context.Files
             .Where(f => _context.Folders
@@ -59,7 +55,6 @@ public class FilesController : BaseUserController
                                          (p2.Id == root.Id ||
                                           p2.Parentfolderid == root.Id))))));
 
-    // Простіший підхід через пряме з'єднання:
     private IQueryable<File> UserFilesSimple =>
         _context.Files
             .Join(_context.Folders,
@@ -81,19 +76,15 @@ public class FilesController : BaseUserController
                  _context.Folders.Any(p2 =>
                      p2.Id == f.Parentfolderid && p2.Parentfolderid == root.Id))));
 
-    // ── Index ──────────────────────────────────────────────────────────────
-
     public async Task<IActionResult> Index(string? search, int page = 1)
     {
         ViewData["Search"] = search;
 
-        // Файли тільки тих папок, де кореневий userId == поточний
         var userFolderIds = await _context.Folders
             .Where(f => f.UserId == CurrentUserId)
             .Select(f => f.Id)
             .ToListAsync();
 
-        // Рекурсивно збираємо всі дочірні папки
         var allFolderIds = await GetAllDescendantFolderIdsAsync(userFolderIds);
 
         var query = _context.Files
@@ -110,8 +101,6 @@ public class FilesController : BaseUserController
         return View(result);
     }
 
-    // ── Details ────────────────────────────────────────────────────────────
-
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null) return NotFound();
@@ -127,8 +116,6 @@ public class FilesController : BaseUserController
         await LoadFolderParentChain(file.Folder);
         return View(file);
     }
-
-    // ── Create ─────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Create(int? folderId)
     {
@@ -153,7 +140,7 @@ public class FilesController : BaseUserController
         [Bind("Name,Description,Folderid,Createdat,Id")] File file,
         int[] selectedTags)
     {
-        // Перевірка що папка належить користувачу
+
         if (await GetRootUserIdAsync(file.Folderid) != CurrentUserId) return Forbid();
 
         bool exists = _context.Files.Any(f => f.Name == file.Name && f.Folderid == file.Folderid);
@@ -181,8 +168,6 @@ public class FilesController : BaseUserController
             _context.Tags.Where(t => t.UserId == CurrentUserId), "Id", "Name", selectedTags);
         return View(file);
     }
-
-    // ── Edit ───────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Edit(int? id)
     {
@@ -271,8 +256,6 @@ public class FilesController : BaseUserController
         return View(file);
     }
 
-    // ── Delete ─────────────────────────────────────────────────────────────
-
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null) return NotFound();
@@ -299,14 +282,8 @@ public class FilesController : BaseUserController
         return RedirectToAction(nameof(Index));
     }
 
-    // ── Внутрішні утиліти ──────────────────────────────────────────────────
-
     private bool FileExists(int id) => _context.Files.Any(e => e.Id == id);
 
-    /// <summary>
-    /// Рекурсивно збирає Id усіх папок-нащадків (включаючи самі кореневі).
-    /// Виконується в пам'яті — оптимально для типових глибин дерева.
-    /// </summary>
     private async Task<HashSet<int>> GetAllDescendantFolderIdsAsync(IEnumerable<int> rootIds)
     {
         var result  = new HashSet<int>(rootIds);

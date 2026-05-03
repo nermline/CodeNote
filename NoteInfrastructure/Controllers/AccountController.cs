@@ -17,8 +17,6 @@ public class AccountController : Controller
         _signInManager = signInManager;
     }
 
-    // ── Реєстрація ─────────────────────────────────────────────────────────
-
     [HttpGet]
     public IActionResult Register() => View();
 
@@ -50,8 +48,6 @@ public class AccountController : Controller
 
         return View(model);
     }
-
-    // ── Вхід ───────────────────────────────────────────────────────────────
 
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
@@ -86,8 +82,6 @@ public class AccountController : Controller
         return View(model);
     }
 
-    // ── Вихід ──────────────────────────────────────────────────────────────
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
@@ -95,8 +89,6 @@ public class AccountController : Controller
         await _signInManager.SignOutAsync();
         return RedirectToAction("Index", "Folders");
     }
-
-    // ── Профіль ────────────────────────────────────────────────────────────
 
     [Authorize]
     [HttpGet]
@@ -130,7 +122,6 @@ public class AccountController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user is null) return NotFound();
 
-        // Перевірка унікальності email якщо він змінився
         if (!string.Equals(user.Email, model.Email, StringComparison.OrdinalIgnoreCase))
         {
             var existing = await _userManager.FindByEmailAsync(model.Email);
@@ -161,8 +152,6 @@ public class AccountController : Controller
         return RedirectToAction(nameof(Profile));
     }
 
-    // ── Зміна пароля ───────────────────────────────────────────────────────
-
     [Authorize]
     [HttpGet]
     public IActionResult ChangePassword() => View();
@@ -192,8 +181,6 @@ public class AccountController : Controller
         TempData["SuccessMessage"] = "Пароль успішно змінено.";
         return RedirectToAction(nameof(Profile));
     }
-
-    // ── Видалення акаунту ──────────────────────────────────────────────────
 
     [Authorize]
     [HttpGet]

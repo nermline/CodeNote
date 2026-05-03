@@ -23,13 +23,11 @@ public class FolderDocxExportService : IExportService<Folder>
         if (!stream.CanWrite)
             throw new ArgumentException("Потік не підтримує запис.", nameof(stream));
 
-        // Завантажуємо всі папки і фільтруємо в пам'яті — підтримує довільну глибину вкладеності
         var allFoldersRaw = await _context.Folders
             .Include(f => f.Files).ThenInclude(file => file.Tags)
             .Include(f => f.Files).ThenInclude(file => file.Fileversions)
             .ToListAsync(cancellationToken);
 
-        // Збираємо Id усіх папок, що належать поточному користувачу (рекурсивно вниз)
         var userRootIds = allFoldersRaw
             .Where(f => f.UserId == _userId)
             .Select(f => f.Id)

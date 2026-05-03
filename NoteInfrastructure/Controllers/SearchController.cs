@@ -25,7 +25,6 @@ public class SearchController : BaseUserController
         {
             var term = q.Trim().ToLower();
 
-            // ── Збираємо Id усіх папок користувача (з нащадками) ──────────
             var rootFolderIds = await _context.Folders
                 .Where(f => f.UserId == CurrentUserId)
                 .Select(f => f.Id)
@@ -33,7 +32,6 @@ public class SearchController : BaseUserController
 
             var userFolderIds = await GetAllDescendantFolderIdsAsync(rootFolderIds);
 
-            // ── Файли ──────────────────────────────────────────────────────
             vm.Files = await PaginatedList<NoteDomain.Model.File>.CreateAsync(
                 _context.Files
                     .Include(f => f.Folder)
@@ -43,7 +41,6 @@ public class SearchController : BaseUserController
                     .OrderBy(f => f.Name),
                 filesPage, SearchPageSize);
 
-            // ── Папки ──────────────────────────────────────────────────────
             vm.Folders = await PaginatedList<NoteDomain.Model.Folder>.CreateAsync(
                 _context.Folders
                     .Include(f => f.Parentfolder)
@@ -52,7 +49,6 @@ public class SearchController : BaseUserController
                     .OrderBy(f => f.Name),
                 foldersPage, SearchPageSize);
 
-            // ── Версії ─────────────────────────────────────────────────────
             vm.Commits = await PaginatedList<NoteDomain.Model.Fileversion>.CreateAsync(
                 _context.Fileversions
                     .Include(fv => fv.File)
@@ -64,7 +60,6 @@ public class SearchController : BaseUserController
                     .OrderByDescending(fv => fv.Createdat),
                 commitsPage, SearchPageSize);
 
-            // ── Теги ───────────────────────────────────────────────────────
             vm.Tags = await PaginatedList<NoteDomain.Model.Tag>.CreateAsync(
                 _context.Tags
                     .Include(t => t.Files)

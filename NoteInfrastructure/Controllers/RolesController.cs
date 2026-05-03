@@ -18,8 +18,6 @@ public class RolesController : Controller
         _userManager = userManager;
     }
 
-    // ── Список ролей ───────────────────────────────────────────────────────
-
     public IActionResult Index() => View(_roleManager.Roles.ToList());
 
     [HttpPost]
@@ -44,7 +42,7 @@ public class RolesController : Controller
         var role = await _roleManager.FindByIdAsync(id);
         if (role is not null)
         {
-            // Не дозволяємо видалити системні ролі
+
             if (role.Name is "admin" or "user")
             {
                 TempData["ErrorMessage"] = "Системні ролі «admin» та «user» видаляти не можна.";
@@ -54,8 +52,6 @@ public class RolesController : Controller
         }
         return RedirectToAction(nameof(Index));
     }
-
-    // ── Список користувачів ────────────────────────────────────────────────
 
     public async Task<IActionResult> UserList(string? search)
     {
@@ -87,8 +83,6 @@ public class RolesController : Controller
         return View(viewModels);
     }
 
-    // ── Редагування ролей користувача ──────────────────────────────────────
-
     public async Task<IActionResult> Edit(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
@@ -112,7 +106,6 @@ public class RolesController : Controller
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null) return NotFound();
 
-        // Не можна прибрати останнього адміна
         if (!roles.Contains("admin"))
         {
             var admins = await _userManager.GetUsersInRoleAsync("admin");
@@ -130,8 +123,6 @@ public class RolesController : Controller
         TempData["SuccessMessage"] = $"Ролі користувача {user.Email} оновлено.";
         return RedirectToAction(nameof(UserList));
     }
-
-    // ── Скидання пароля (адмін) ────────────────────────────────────────────
 
     [HttpGet]
     public async Task<IActionResult> ResetPassword(string userId)
@@ -156,7 +147,6 @@ public class RolesController : Controller
         var user = await _userManager.FindByIdAsync(model.UserId);
         if (user is null) return NotFound();
 
-        // Генеруємо токен скидання і одразу застосовуємо новий пароль
         var token  = await _userManager.GeneratePasswordResetTokenAsync(user);
         var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
 
@@ -171,15 +161,12 @@ public class RolesController : Controller
         return RedirectToAction(nameof(UserList));
     }
 
-    // ── Видалення користувача (адмін) ──────────────────────────────────────
-
     [HttpGet]
     public async Task<IActionResult> DeleteUser(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null) return NotFound();
 
-        // Не можна видалити єдиного адміна
         if (await _userManager.IsInRoleAsync(user, "admin"))
         {
             var admins = await _userManager.GetUsersInRoleAsync("admin");
@@ -220,8 +207,6 @@ public class RolesController : Controller
         TempData["SuccessMessage"] = $"Користувача {user.Email} видалено.";
         return RedirectToAction(nameof(UserList));
     }
-
-    // ── Блокування / розблокування ─────────────────────────────────────────
 
     [HttpPost]
     [ValidateAntiForgeryToken]

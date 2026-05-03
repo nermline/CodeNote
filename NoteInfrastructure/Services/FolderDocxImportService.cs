@@ -188,10 +188,7 @@ public class FolderDocxImportService : IImportService<Folder>
             return;
         }
 
-        // Якщо жоден стан не активний — таблиця не обробляється
     }
-
-    // ── Helpers ────────────────────────────────────────────────────────────
 
     private async Task<Folder> GetOrCreateFolderChainAsync(
         string fullPath, Dictionary<string, Folder> cache, CancellationToken ct)
@@ -209,14 +206,12 @@ public class FolderDocxImportService : IImportService<Folder>
             {
                 int? parentId = currentParent?.Id;
 
-                // 1. Локальний кеш EF
                 folder = depth == 0
                     ? _context.Folders.Local.FirstOrDefault(
                         f => f.Name == part && f.Parentfolderid == null && f.UserId == _userId)
                     : _context.Folders.Local.FirstOrDefault(
                         f => f.Name == part && f.Parentfolderid == parentId);
 
-                // 2. БД
                 if (folder is null)
                 {
                     folder = depth == 0
@@ -226,7 +221,6 @@ public class FolderDocxImportService : IImportService<Folder>
                             f => f.Name == part && f.Parentfolderid == parentId, ct);
                 }
 
-                // 3. Створюємо
                 if (folder is null)
                 {
                     folder = new Folder
@@ -292,16 +286,14 @@ public class FolderDocxImportService : IImportService<Folder>
 
             if (!cache.TryGetValue(safeName, out var tag))
             {
-                // 1. Локальний кеш EF (відстежувані але ще не збережені сутності)
+
                 tag = _context.Tags.Local
                     .FirstOrDefault(t => t.Name == safeName && t.UserId == _userId);
 
-                // 2. БД
                 if (tag is null)
                     tag = await _context.Tags.FirstOrDefaultAsync(
                         t => t.Name == safeName && t.UserId == _userId, ct);
 
-                // 3. Створюємо новий
                 if (tag is null)
                 {
                     tag = new NoteTag { Name = safeName, UserId = _userId };

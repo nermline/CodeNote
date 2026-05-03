@@ -13,8 +13,6 @@ public class FileversionsController : BaseUserController
 
     public FileversionsController(NotedbContext context) => _context = context;
 
-    // ── Допоміжні ─────────────────────────────────────────────────────────
-
     private async Task LoadFolderParentChain(Folder? folder)
     {
         if (folder == null) return;
@@ -49,7 +47,6 @@ public class FileversionsController : BaseUserController
         return await GetRootUserIdForFolder(file.Folderid) == CurrentUserId;
     }
 
-    /// <summary>Id всіх папок поточного користувача (включно з дочірніми).</summary>
     private async Task<HashSet<int>> GetUserFolderIdsAsync()
     {
         var rootIds = await _context.Folders
@@ -69,8 +66,6 @@ public class FileversionsController : BaseUserController
         }
         return result;
     }
-
-    // ── Index ──────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Index(string? search, int page = 1)
     {
@@ -97,8 +92,6 @@ public class FileversionsController : BaseUserController
         return View(result);
     }
 
-    // ── Details ────────────────────────────────────────────────────────────
-
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null) return NotFound();
@@ -112,8 +105,6 @@ public class FileversionsController : BaseUserController
         if (fileversion.File?.Folder != null) await LoadFolderParentChain(fileversion.File.Folder);
         return View(fileversion);
     }
-
-    // ── Create ─────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Create(int? fileId)
     {
@@ -144,8 +135,6 @@ public class FileversionsController : BaseUserController
             "Id", "Name", fileversion.Fileid);
         return View(fileversion);
     }
-
-    // ── Edit ───────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Edit(int? id)
     {
@@ -196,8 +185,6 @@ public class FileversionsController : BaseUserController
             "Id", "Name", fileversion.Fileid);
         return View(fileversion);
     }
-
-    // ── Delete ─────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Delete(int? id)
     {

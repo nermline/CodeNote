@@ -6,10 +6,6 @@ using File = NoteDomain.Model.File;
 
 namespace NoteInfrastructure.Services;
 
-/// <summary>
-/// Імпорт із .xlsx файлу через DocumentFormat.OpenXml (замість ClosedXML).
-/// ClosedXML не обробляє xlsx з namespace-префіксом «x:», що спричиняє StackOverflow.
-/// </summary>
 public class FolderImportService : IImportService<Folder>
 {
     private readonly NotedbContext _context;
@@ -141,8 +137,6 @@ public class FolderImportService : IImportService<Folder>
         }
     }
 
-    // ── OpenXml helpers ────────────────────────────────────────────────────
-
     private static List<string> LoadSharedStrings(WorkbookPart wbp)
     {
         var result = new List<string>();
@@ -186,8 +180,6 @@ public class FolderImportService : IImportService<Folder>
         }
         return result;
     }
-
-    // ── DB helpers ─────────────────────────────────────────────────────────
 
     private static void TryReadFolderDate(Row row, Folder folder, List<string> ss)
     {

@@ -15,8 +15,6 @@ public class TagsController : BaseUserController
     private IQueryable<Tag> UserTags =>
         _context.Tags.Where(t => t.UserId == CurrentUserId);
 
-    // ── Index ──────────────────────────────────────────────────────────────
-
     public async Task<IActionResult> Index(string? search, int page = 1)
     {
         ViewData["Search"] = search;
@@ -32,8 +30,6 @@ public class TagsController : BaseUserController
         return View(result);
     }
 
-    // ── Details ────────────────────────────────────────────────────────────
-
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null) return NotFound();
@@ -45,8 +41,6 @@ public class TagsController : BaseUserController
         if (tag == null) return NotFound();
         return View(tag);
     }
-
-    // ── Create ─────────────────────────────────────────────────────────────
 
     public IActionResult Create() => View();
 
@@ -68,8 +62,6 @@ public class TagsController : BaseUserController
         return View(tag);
     }
 
-    // ── Edit ───────────────────────────────────────────────────────────────
-
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
@@ -85,7 +77,6 @@ public class TagsController : BaseUserController
     {
         if (id != tag.Id) return NotFound();
 
-        // Перевірка що тег належить поточному користувачу
         if (!await UserTags.AnyAsync(t => t.Id == id)) return Forbid();
 
         bool exists = UserTags.Any(t => t.Name == tag.Name && t.Id != tag.Id);
@@ -96,7 +87,7 @@ public class TagsController : BaseUserController
         {
             try
             {
-                // Зберігаємо UserId при оновленні
+
                 var existing = await UserTags.AsNoTracking().FirstAsync(t => t.Id == id);
                 tag.UserId = existing.UserId;
 
@@ -112,8 +103,6 @@ public class TagsController : BaseUserController
         }
         return View(tag);
     }
-
-    // ── Delete ─────────────────────────────────────────────────────────────
 
     public async Task<IActionResult> Delete(int? id)
     {

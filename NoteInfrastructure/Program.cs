@@ -5,28 +5,23 @@ using NoteInfrastructure.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── MVC ───────────────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 
-// ── Основна БД (NotedbContext — PostgreSQL) ───────────────────────────────
 builder.Services.AddDbContext<NotedbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ── Identity БД (IdentityContext — PostgreSQL) ────────────────────────────
 builder.Services.AddDbContext<IdentityContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("IdentityConnection")));
 
-// ── ASP.NET Core Identity ─────────────────────────────────────────────────
 builder.Services
     .AddIdentity<AppUser, IdentityRole>(options =>
     {
-        // Вимоги до пароля
+
         options.Password.RequireDigit           = true;
         options.Password.RequiredLength         = 6;
         options.Password.RequireNonAlphanumeric = false;
         options.Password.RequireUppercase       = false;
 
-        // Блокування після невдалих спроб
         options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(15);
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.AllowedForNewUsers      = true;
@@ -34,7 +29,6 @@ builder.Services
     .AddEntityFrameworkStores<IdentityContext>()
     .AddDefaultTokenProviders();
 
-// ── Перенаправлення на сторінку входу за замовчуванням ────────────────────
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath  = "/Account/Login";
@@ -43,7 +37,6 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
-// ── Ініціалізація ролей і адміна ──────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -60,7 +53,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// ── HTTP Pipeline ─────────────────────────────────────────────────────────
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -70,7 +62,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting();          // ← має бути ПЕРЕД UseAuthentication та UseAuthorization
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 

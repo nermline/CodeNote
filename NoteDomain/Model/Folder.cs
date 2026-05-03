@@ -16,10 +16,6 @@ public partial class Folder : Entity
     [Display(Name = "Дата створення")]
     public DateTime? Createdat { get; set; }
 
-    /// <summary>
-    /// Ідентифікатор власника (AspNetUsers.Id). Заповнюється лише для кореневих папок.
-    /// Для вкладених папок власник визначається через ланцюг батьків.
-    /// </summary>
     public string? UserId { get; set; }
 
     public virtual ICollection<File> Files { get; set; } = new List<File>();

@@ -60,7 +60,6 @@
                         </a>
                     </li>
 
-                    @* ── Адмін: посилання на управління ролями ── *@
                     @if (User.IsInRole("admin"))
                     {
                         <li class="nav-item">
@@ -72,7 +71,6 @@
                     }
                 </ul>
 
-                @* ── Блок автентифікації (правий край навбара) ── *@
                 <ul class="nav-links ms-auto">
                     @if (User.Identity!.IsAuthenticated)
                     {

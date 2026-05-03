@@ -59,6 +59,53 @@
                             <i class="bi bi-search"></i> Пошук
                         </a>
                     </li>
+
+                    @* ── Адмін: посилання на управління ролями ── *@
+                    @if (User.IsInRole("admin"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Roles" ? "active" : "")"
+                               asp-controller="Roles" asp-action="UserList">
+                                <i class="bi bi-shield-lock"></i> Адмін
+                            </a>
+                        </li>
+                    }
+                </ul>
+
+                @* ── Блок автентифікації (правий край навбара) ── *@
+                <ul class="nav-links ms-auto">
+                    @if (User.Identity!.IsAuthenticated)
+                    {
+                        <li class="nav-item d-flex align-items-center me-2">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" ? "active" : "")"
+                               asp-controller="Account" asp-action="Profile"
+                               style="color:var(--text-secondary)">
+                                <i class="bi bi-person-circle"></i> @User.Identity.Name
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="nav-link btn btn-link p-0"
+                                        style="text-decoration:none; border:none; background:none">
+                                    <i class="bi bi-box-arrow-right"></i> Вихід
+                                </button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                <i class="bi bi-box-arrow-in-right"></i> Вхід
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Register">
+                                <i class="bi bi-person-plus"></i> Реєстрація
+                            </a>
+                        </li>
+                    }
                 </ul>
             </div>
         </div>

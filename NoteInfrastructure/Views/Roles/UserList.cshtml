@@ -1,0 +1,165 @@
+@model IEnumerable<NoteInfrastructure.ViewModels.AdminUserViewModel>
+@{
+    ViewData["Title"] = "Керування користувачами";
+    string? search  = ViewData["Search"] as string;
+    var     success = TempData["SuccessMessage"] as string;
+    var     error   = TempData["ErrorMessage"]   as string;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="bi bi-people"></i> Керування користувачами</h1>
+        <div class="breadcrumb-path">
+            Адмін / <a asp-action="Index">Ролі</a> / Користувачі
+        </div>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-shield-lock me-1"></i> Ролі
+    </a>
+</div>
+
+@if (success is not null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        <i class="bi bi-check-circle me-2"></i>@success
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (error is not null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">
+        <i class="bi bi-exclamation-triangle me-2"></i>@error
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="list-search-bar mb-3">
+    <form asp-action="UserList" method="get" class="d-flex gap-2">
+        <div class="search-input-wrap flex-grow-1">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" name="search" value="@search"
+                   class="form-control search-input"
+                   placeholder="Пошук за email…" autocomplete="off" />
+            @if (!string.IsNullOrWhiteSpace(search))
+            {
+                <a asp-action="UserList" class="search-clear" title="Скинути">
+                    <i class="bi bi-x"></i>
+                </a>
+            }
+        </div>
+        <button type="submit" class="btn btn-outline-secondary">
+            <i class="bi bi-funnel"></i> Фільтр
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Рік</th>
+                    <th>Ролі</th>
+                    <th>Статус</th>
+                    <th style="width:200px" class="text-end">Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr class="@(u.IsLockedOut ? "table-secondary" : "")">
+                        <td class="align-middle">
+                            <i class="bi bi-person-circle text-secondary me-1"></i>
+                            <strong>@u.Email</strong>
+                        </td>
+                        <td class="align-middle text-muted small">@(u.Year?.ToString() ?? "—")</td>
+                        <td class="align-middle">
+                            @foreach (var r in u.Roles)
+                            {
+                                <span class="badge @(r == "admin" ? "bg-danger" : "bg-secondary") me-1">@r</span>
+                            }
+                        </td>
+                        <td class="align-middle">
+                            @if (u.IsLockedOut)
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-lock-fill me-1"></i>Заблоковано
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>Активний
+                                </span>
+                            }
+                        </td>
+                        <td class="align-middle text-end">
+                            <div class="d-flex gap-1 justify-content-end">
+
+                                @* Редагувати ролі *@
+                                <a asp-action="Edit" asp-route-userId="@u.Id"
+                                   class="btn btn-sm btn-outline-primary" title="Ролі">
+                                    <i class="bi bi-shield-check"></i>
+                                </a>
+
+                                @* Скинути пароль *@
+                                <a asp-action="ResetPassword" asp-route-userId="@u.Id"
+                                   class="btn btn-sm btn-outline-warning" title="Скинути пароль">
+                                    <i class="bi bi-key"></i>
+                                </a>
+
+                                @* Блокування — недоступне для єдиного адміна *@
+                                @if (!u.IsLastAdmin)
+                                {
+                                    <form asp-action="ToggleLock" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@u.Id" />
+                                        <button type="submit"
+                                                class="btn btn-sm @(u.IsLockedOut ? "btn-outline-success" : "btn-outline-secondary")"
+                                                title="@(u.IsLockedOut ? "Розблокувати" : "Заблокувати")"
+                                                onclick="return confirm('@(u.IsLockedOut ? "Розблокувати" : "Заблокувати") @u.Email?')">
+                                            <i class="bi @(u.IsLockedOut ? "bi-unlock" : "bi-lock")"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            disabled title="Єдиний адміністратор — заблокувати неможливо">
+                                        <i class="bi bi-lock"></i>
+                                    </button>
+                                }
+
+                                @* Видалити — приховано для єдиного адміна *@
+                                @if (!u.IsLastAdmin)
+                                {
+                                    <a asp-action="DeleteUser" asp-route-userId="@u.Id"
+                                       class="btn btn-sm btn-outline-danger" title="Видалити">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            disabled title="Єдиного адміністратора видалити неможливо">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
+
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-search me-2"></i>Користувачів не знайдено
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

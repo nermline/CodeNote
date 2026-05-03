@@ -1,0 +1,48 @@
+@model NoteInfrastructure.ViewModels.AdminUserViewModel
+@{
+    ViewData["Title"] = "Видалити користувача";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white d-flex align-items-center gap-2">
+                <i class="bi bi-person-x-fill fs-5"></i>
+                <strong>Видалення користувача</strong>
+            </div>
+            <div class="card-body">
+                <p>Ви впевнені, що хочете видалити наступного користувача?</p>
+                <dl class="row mb-3">
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8"><strong>@Model.Email</strong></dd>
+                    <dt class="col-sm-4">Рік</dt>
+                    <dd class="col-sm-8">@(Model.Year?.ToString() ?? "—")</dd>
+                    <dt class="col-sm-4">Ролі</dt>
+                    <dd class="col-sm-8">
+                        @foreach (var r in Model.Roles)
+                        {
+                            <span class="badge bg-secondary me-1">@r</span>
+                        }
+                    </dd>
+                </dl>
+
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Усі дані користувача будуть видалені. Цю дію не можна скасувати.
+                </div>
+
+                <form asp-action="DeleteUser" asp-route-userId="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-1"></i> Видалити
+                        </button>
+                        <a asp-action="UserList" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Скасувати
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,84 @@
+@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityRole>
+@{
+    ViewData["Title"] = "Ролі";
+    var success = TempData["SuccessMessage"] as string;
+    var error   = TempData["ErrorMessage"]   as string;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="bi bi-shield-lock"></i> Список ролей</h1>
+        <div class="breadcrumb-path">Адмін / Ролі</div>
+    </div>
+    <a asp-action="UserList" class="btn btn-outline-primary">
+        <i class="bi bi-people me-1"></i> Користувачі
+    </a>
+</div>
+
+@if (success is not null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        <i class="bi bi-check-circle me-2"></i>@success
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (error is not null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">
+        <i class="bi bi-exclamation-triangle me-2"></i>@error
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Назва ролі</th>
+                    <th style="width:100px" class="text-end">Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var role in Model)
+                {
+                    <tr>
+                        <td class="align-middle">
+                            <i class="bi bi-shield @(role.Name == "admin" ? "text-danger" : "text-secondary") me-1"></i>
+                            <strong>@role.Name</strong>
+                            @if (role.Name is "admin" or "user")
+                            {
+                                <span class="badge bg-light text-muted ms-2" style="font-size:0.7rem">системна</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (role.Name is not "admin" and not "user")
+                            {
+                                <form asp-action="Delete" asp-route-id="@role.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Видалити роль «@role.Name»?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card" style="max-width:380px">
+    <div class="card-header" style="color:var(--text-primary, inherit)"><strong>Додати нову роль</strong></div>
+    <div class="card-body">
+        <form asp-action="Create" method="post" class="d-flex gap-2">
+            @Html.AntiForgeryToken()
+            <input type="text" name="roleName" class="form-control" placeholder="Назва ролі" required />
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+        </form>
+    </div>
+</div>

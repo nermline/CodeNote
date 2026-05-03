@@ -1,0 +1,110 @@
+@model NoteInfrastructure.ViewModels.EditProfileViewModel
+@{
+    ViewData["Title"] = "Мій профіль";
+    var roles   = ViewData["UserRoles"] as IList<string> ?? new List<string>();
+    var success = TempData["SuccessMessage"] as string;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="bi bi-person-circle"></i> Мій профіль</h1>
+        <div class="breadcrumb-path">
+            <a asp-controller="Folders" asp-action="Index">Головна</a> / Профіль
+        </div>
+    </div>
+</div>
+
+@if (success is not null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        <i class="bi bi-check-circle me-2"></i>@success
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4">
+
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header d-flex align-items-center gap-2" style="color:var(--text-primary, inherit)">
+                <i class="bi bi-person-fill text-primary fs-5"></i>
+                <strong>Особисті дані</strong>
+            </div>
+            <div class="card-body">
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger mb-3">
+                        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div><i class="bi bi-exclamation-triangle me-1"></i>@e.ErrorMessage</div>
+                        }
+                    </div>
+                }
+
+                <form asp-action="Profile" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-semibold"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Year" class="form-label fw-semibold"></label>
+                        <input asp-for="Year" class="form-control" type="number" min="1900" max="2100" />
+                        <span asp-validation-for="Year" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-floppy me-1"></i> Зберегти зміни
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5 d-flex flex-column gap-3">
+
+        <div class="card">
+            <div class="card-header d-flex align-items-center gap-2" style="color:var(--text-primary, inherit)">
+                <i class="bi bi-shield-fill text-warning fs-5"></i>
+                <strong>Ролі</strong>
+            </div>
+            <div class="card-body">
+                @if (!roles.Any())
+                {
+                    <span class="text-muted small">Немає призначених ролей</span>
+                }
+                else
+                {
+                    foreach (var role in roles)
+                    {
+                        <span class="badge bg-secondary me-1">@role</span>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex align-items-center gap-2" style="color:var(--text-primary, inherit)">
+                <i class="bi bi-gear-fill text-secondary fs-5"></i>
+                <strong>Безпека</strong>
+            </div>
+            <div class="card-body d-flex flex-column gap-2">
+                <a asp-action="ChangePassword" class="btn btn-outline-warning w-100">
+                    <i class="bi bi-key me-1"></i> Змінити пароль
+                </a>
+                <a asp-action="DeleteAccount" class="btn btn-outline-danger w-100">
+                    <i class="bi bi-trash me-1"></i> Видалити акаунт
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
